@@ -6,23 +6,21 @@ using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Entities;
 using Xunit;
 using AutoMapper;
-using BCrypt.Net;
-using MockQueryable.Moq;
-using Moq;
-using WonderfulRabbitsApi.DatabaseContext;
 using WonderfulRabbitsApi.Services;
 using Microsoft.AspNetCore.Http;
 using FluentAssertions;
 
-public class UserServiceTests
+public class UserServiceTests : IClassFixture<TestDatabaseFixture>
 {
     private TestDataHelper helper;
     private IMapper mapper;
     private IJwtUtils jwtUtils;
     private IOptions<AppSettings> appSettings;
+    private TestDatabaseFixture fixture;
 
-    public UserServiceTests()
+    public UserServiceTests(TestDatabaseFixture fixture)
     {
+        this.fixture = fixture;
         helper = new TestDataHelper();
         mapper = new Mapper(AutoMapperConfiguration.Configure());
         appSettings = new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "thisISaTESTINGsecret28282" });
@@ -33,23 +31,30 @@ public class UserServiceTests
     public async void RegisterUser_WhenANewUserIsRegistered_ThenItShouldBeAddedToTheDB()
     {
         //Arrange
+        using var context = fixture.CreateContext();
+
+        //the database isn't actually updated, avoiding test interference
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
         var userModel = helper.GetRegisterUserModel();
         var user = mapper.Map<User>(userModel);
-        user.PasswordHash = BCrypt.HashPassword(userModel.Password);
-        var users = new List<User>() { user };
-
-        var mock = users.BuildMock().BuildMockDbSet();
-        var dbContextMock = new Mock<RabbitDbContext>(null);
-        dbContextMock.Setup(x => x.Users).Returns(mock.Object);
-
-        var sut = new UserService(dbContextMock.Object, new HttpContextAccessor(), mapper, jwtUtils);
 
         //Act
-        userModel = helper.GetRegisterUserModel();
         var id = await sut.RegisterUserAsync(userModel);
-        var result = await sut.GetUser(id);
+
+        //to make sure that the user is loaded from the database
+        context.ChangeTracker.Clear();
 
         //Assert
-        result.Should().BeEquivalentTo(user);
+        var result = await sut.GetUser(id);
+        result.Should().BeEquivalentTo(user,
+            options => options
+                .Excluding(x => x.Id)
+                .Excluding(x => x.PasswordHash));
+
+        result.PasswordHash.Should().NotBeEquivalentTo(userModel.Password);
+        result.PasswordHash.Should().NotBeNull();
     }
 }

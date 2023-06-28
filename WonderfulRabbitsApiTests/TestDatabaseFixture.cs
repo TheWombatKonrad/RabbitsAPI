@@ -5,7 +5,7 @@ namespace WonderfulRabbitsApiTests;
 
 public class TestDatabaseFixture
 {
-    private const string ConnectionString = @"Server=(localdb)\mssqllocaldb;Database=EFTestSample;Trusted_Connection=True";
+    private const string connectionString = @"Server=.\SQLExpress;Database=EFTestSample;Trusted_Connection=True;TrustServerCertificate=True";
 
     private static readonly object _lock = new();
     private static bool _databaseInitialized;
@@ -36,6 +36,6 @@ public class TestDatabaseFixture
     public RabbitDbContext CreateContext()
         => new RabbitDbContext(
             new DbContextOptionsBuilder<RabbitDbContext>()
-                .UseSqlServer(ConnectionString)
+                .UseSqlServer(connectionString)
                 .Options);
 }
