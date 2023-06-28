@@ -4,16 +4,17 @@ using WonderfulRabbitsApi.Services;
 using System.Text.Json.Serialization;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace WonderfulRabbitsApi
 {
     public class Startup
     {
+        public IConfigurationRoot _configuration { get; }
         public Startup(IConfigurationRoot configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-        public IConfigurationRoot Configuration { get; }
 
         //this runs at every request
         public void Configure(WebApplication app)
@@ -47,7 +48,11 @@ namespace WonderfulRabbitsApi
         public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
         {
             //the order of things is important so be careful when adding things
-            services.AddDbContext<RabbitDbContext>();
+            services.AddDbContext<RabbitDbContext>(
+                options => options
+                    .UseSqlServer(_configuration.GetConnectionString("DefaultConnection"))
+                    .UseLazyLoadingProxies()
+                    );
 
             services.AddCors(options =>
             {
@@ -74,7 +79,7 @@ namespace WonderfulRabbitsApi
             services.AddAutoMapper(typeof(Program));
             AutoMapperConfiguration.Configure();
 
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            services.Configure<AppSettings>(_configuration.GetSection("AppSettings"));
 
             // configure DI for application services
             services.AddScoped<IJwtUtils, JwtUtils>();

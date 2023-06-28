@@ -5,21 +5,11 @@ namespace WonderfulRabbitsApi.DatabaseContext
 {
     public class RabbitDbContext : DbContext
     {
-        protected readonly IConfiguration Configuration;
+        private DbContextOptions<RabbitDbContext> _options;
 
-        public RabbitDbContext(IConfiguration configuration)
+        public RabbitDbContext(DbContextOptions<RabbitDbContext> options) : base(options)
         {
-            Configuration = configuration;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            // connect to sql server database
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-
-            //related data is loaded from the database when navigation property is accessed
-            //meaning helps with the relationships in entities
-            options.UseLazyLoadingProxies();
+            _options = options;
         }
 
         public virtual DbSet<User>? Users { get; set; }
