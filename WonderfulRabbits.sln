@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WonderfulRabbitsApi", "WonderfulRabbitsApi\WonderfulRabbitsApi.csproj", "{1CF087CF-1005-436A-AE30-D02D7C1CAAB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WonderfulRabbitsApiTests", "WonderfulRabbitsApiTests\WonderfulRabbitsApiTests.csproj", "{36C3A451-AA91-43FC-A0F9-1F0C6FBD6B2F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1CF087CF-1005-436A-AE30-D02D7C1CAAB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CF087CF-1005-436A-AE30-D02D7C1CAAB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CF087CF-1005-436A-AE30-D02D7C1CAAB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CF087CF-1005-436A-AE30-D02D7C1CAAB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36C3A451-AA91-43FC-A0F9-1F0C6FBD6B2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36C3A451-AA91-43FC-A0F9-1F0C6FBD6B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36C3A451-AA91-43FC-A0F9-1F0C6FBD6B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C3A451-AA91-43FC-A0F9-1F0C6FBD6B2F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,70 @@
+namespace WonderfulRabbitsApiTests.ServiceTests;
+
+using Xunit;
+using WonderfulRabbitsApi.Helpers;
+using WonderfulRabbitsApi.Services.Interfaces;
+using WonderfulRabbitsApi.DatabaseContext;
+using Moq;
+using MockQueryable.Moq;
+using WonderfulRabbitsApi.Services;
+using Microsoft.AspNetCore.Http;
+using WonderfulRabbitsApi.Authorization;
+using Microsoft.Extensions.Options;
+using AutoMapper;
+using WonderfulRabbitsApi.Entities;
+using BCrypt.Net;
+using FluentAssertions;
+
+public class UserServiceTests
+{
+    // private Mock _mock;
+    // private Mock<IRabbitDbContext> _context;
+    //
+    // 
+    // private IUserService _sut;
+    // public UserServiceTests()
+    // {
+    //     _context = new Mock<IRabbitDbContext>().Setup(x => x.Users);
+    //     
+    //     _jwtUtils = new JwtUtils(_appSettings);
+    //     _mapper = new Mapper(AutoMapperConfiguration.Configure());
+
+    //     _sut = new UserService(_context.Setup<RabbitDbContext>(), new HttpContextAccessor(), _mapper, _jwtUtils);
+    // }
+
+    private TestDataHelper helper;
+    private IMapper mapper;
+    private IJwtUtils jwtUtils;
+    private IOptions<AppSettings> appSettings;
+
+    public UserServiceTests()
+    {
+        helper = new TestDataHelper();
+        mapper = new Mapper(AutoMapperConfiguration.Configure());
+        appSettings = new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "thisISaTESTINGsecret28282" });
+        jwtUtils = new JwtUtils(appSettings);
+    }
+
+    [Fact]
+    public void RegisterUser_WhenANewUserIsRegistered_ThenItShouldBeAddedToTheDB()
+    {
+        // //Arrange
+        // var userModel = helper.GetRegisterUserModel();
+        // var user = mapper.Map<User>(userModel);
+        // user.PasswordHash = BCrypt.HashPassword(userModel.Password);
+        // var users = new List<User>() { user };
+
+        // var mock = users.BuildMock().BuildMockDbSet();
+        // var dbContextMock = new Mock<RabbitDbContext>();
+        // dbContextMock.Setup(x => x.Users).Returns(mock.Object);
+
+        // var sut = new UserService(dbContextMock.Object, new HttpContextAccessor(), mapper, jwtUtils);
+
+        // //Act
+        // var id = await sut.RegisterUserAsync(userModel);
+        // var result = await sut.GetUser(id);
+
+        // //Assert
+        // result.Should().BeEquivalentTo(user);
+    }
+}
