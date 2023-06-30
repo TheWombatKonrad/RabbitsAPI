@@ -1,6 +1,6 @@
 ﻿namespace WonderfulRabbitsApi.Models.Users
 {
-    public class AuthenticateResponse
+    public class AuthenticateResponseModel
     {
         public int Id { get; set; }
         public string Username { get; set; }

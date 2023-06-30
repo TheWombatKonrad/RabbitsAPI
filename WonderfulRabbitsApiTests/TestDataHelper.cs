@@ -5,6 +5,7 @@ using Bogus.Extensions;
 using WonderfulRabbitsApi.Entities;
 using BCrypt.Net;
 using WonderfulRabbitsApi.Models.Users;
+using System.Collections.Generic;
 
 public class TestDataHelper
 {

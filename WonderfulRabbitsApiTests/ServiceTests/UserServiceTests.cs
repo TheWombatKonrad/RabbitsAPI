@@ -8,9 +8,6 @@ using AutoMapper;
 using WonderfulRabbitsApi.Services;
 using Microsoft.AspNetCore.Http;
 using FluentAssertions;
-using Bogus;
-using Bogus.Extensions;
-using BCrypt.Net;
 using WonderfulRabbitsApi.Models.Users;
 using Microsoft.Extensions.Options;
 
@@ -62,7 +59,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async void RegisterUserAsync_WhenTheUsernameAlreadyExists_TheUserShouldNotBeAdded()
+    public async void RegisterUserAsync_WhenTheUsernameAlreadyExists_ThenAnExceptionShouldBeSent()
     {
         //Arrange
         using var context = fixture.CreateContext();
@@ -72,6 +69,8 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
 
         var userModel = helper.GetRegisterUserModel();
         var id = await sut.RegisterUserAsync(userModel);
+
+        context.ChangeTracker.Clear();
 
         //Act & Assert
         await sut.Invoking(y => y.RegisterUserAsync(userModel)).Should()
@@ -91,8 +90,10 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         var userModel = helper.GetRegisterUserModel();
         var userId = await sut.RegisterUserAsync(userModel);
 
+        context.ChangeTracker.Clear();
+
         //Act
-        var result = sut.AuthenticateUser(new AuthenticateRequest()
+        var result = sut.AuthenticateUser(new AuthenticateRequestModel()
         {
             Username = userModel.Username,
             Password = userModel.Password
@@ -101,5 +102,133 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         //Assert
         var id = jwtUtils.ValidateToken(result.Token);
         id.Equals(userId);
+    }
+
+    [Fact]
+    public async void AuthenticateUser_WhenPasswordIsInvalid_ThenAnExceptionShouldBeSent()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        await sut.RegisterUserAsync(userModel);
+
+        context.ChangeTracker.Clear();
+
+        //Act & Assert
+        sut.Invoking(y => y.AuthenticateUser(new AuthenticateRequestModel()
+        {
+            Username = userModel.Username,
+            Password = "wrongPassword"
+        })).Should()
+            .Throw<AppException>()
+            .WithMessage("Username or password is incorrect");
+    }
+
+    [Fact]
+    public async void GetUser_WhenUserExists_ThenItShouldBeReturned()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        var id = await sut.RegisterUserAsync(userModel);
+
+        context.ChangeTracker.Clear();
+
+        var expected = mapper.Map<User>(userModel);
+        expected.Id = id;
+
+        //Act
+        var result = await sut.GetUser(id);
+
+        //Assert
+        result.Should().BeEquivalentTo(expected, options =>
+            options.Excluding(x => x.PasswordHash));
+    }
+
+    [Fact]
+    public async void GetUsers_WhenUsersExist_ThenTheyShouldBeReturned()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var users = helper.GetUsers(3);
+        context.Users.AddRange(users);
+        context.SaveChanges();
+
+        context.ChangeTracker.Clear();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        //Act
+        var result = await sut.GetUsers();
+
+        //Assert
+        result.Should().BeEquivalentTo(users, options =>
+            options.Excluding(x => x.PasswordHash));
+    }
+
+    [Fact]
+    public async void UpdateUser_WhenUserExists_ThenItShouldBeUpdated()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        var id = await sut.RegisterUserAsync(userModel);
+        context.ChangeTracker.Clear();
+
+        UpdateUserModel updateModel = new UpdateUserModel()
+        {
+            Username = "new",
+            Password = userModel.Password,
+            Email = userModel.Email
+        };
+
+        var expected = mapper.Map<User>(updateModel);
+        expected.Id = id;
+
+        //Act
+        await sut.UpdateUserAsync(id, updateModel);
+        context.ChangeTracker.Clear();
+
+        //Assert
+        var result = context.Users.FirstOrDefault(x => x.Id == id);
+
+        result.Should().BeEquivalentTo(expected, options =>
+            options.Excluding(x => x.PasswordHash));
+    }
+
+    [Fact]
+    public async void DeleteUser_WhenUserExists_ThenItShouldBeDeleted()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        var id = await sut.RegisterUserAsync(userModel);
+        context.ChangeTracker.Clear();
+
+        //Act
+        await sut.DeleteUserAsync(id);
+        context.ChangeTracker.Clear();
+
+        //Assert
+        var result = context.Users.FirstOrDefault(x => x.Id == id);
+        result.Should().BeNull();
     }
 }

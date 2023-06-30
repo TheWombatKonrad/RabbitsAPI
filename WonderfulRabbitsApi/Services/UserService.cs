@@ -8,6 +8,7 @@ using WonderfulRabbitsApi.Entities;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Models.Users;
 using WonderfulRabbitsApi.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 public class UserService : IUserService
 {
@@ -28,7 +29,7 @@ public class UserService : IUserService
         _jwtUtils = jwtUtils;
     }
 
-    public AuthenticateResponse AuthenticateUser(AuthenticateRequest model)
+    public AuthenticateResponseModel AuthenticateUser(AuthenticateRequestModel model)
     {
         var user = _context.Users.SingleOrDefault(x => x.Username == model.Username);
 
@@ -37,15 +38,15 @@ public class UserService : IUserService
             throw new AppException("Username or password is incorrect");
 
         // authentication successful
-        var response = _mapper.Map<AuthenticateResponse>(user);
+        var response = _mapper.Map<AuthenticateResponseModel>(user);
         response.Token = _jwtUtils.GenerateToken(user);
 
         return response;
     }
 
-    public List<User> GetUsers()
+    public async Task<List<User>> GetUsers()
     {
-        return _context.Users.ToList();
+        return await _context.Users.ToListAsync();
     }
 
     public async Task<User> GetUser(int id)
@@ -79,7 +80,7 @@ public class UserService : IUserService
         return _context.Users.First(x => x.Username == model.Username).Id;
     }
 
-    public async void UpdateUser(int id, UpdateUser model)
+    public async Task UpdateUserAsync(int id, UpdateUserModel model)
     {
         var user = await getById(id);
 
@@ -97,7 +98,7 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
     }
 
-    public async void DeleteUser(int id)
+    public async Task DeleteUserAsync(int id)
     {
         var user = await getById(id);
 

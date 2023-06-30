@@ -46,15 +46,15 @@ namespace WonderfulRabbitsApi.Controllers
 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, UpdateUser model)
+        public IActionResult UpdateUser(int id, UpdateUserModel model)
         {
-            _userService.UpdateUser(id, model);
+            _userService.UpdateUserAsync(id, model);
             return Ok(new { message = "User updated successfully" });
         }
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public IActionResult AuthenticateUser(AuthenticateRequest model)
+        public IActionResult AuthenticateUser(AuthenticateRequestModel model)
         {
             var response = _userService.AuthenticateUser(model);
             return Ok(response);
@@ -70,9 +70,9 @@ namespace WonderfulRabbitsApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteUser(int id)
+        public IActionResult DeleteUserAsync(int id)
         {
-            _userService.DeleteUser(id);
+            _userService.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
 
