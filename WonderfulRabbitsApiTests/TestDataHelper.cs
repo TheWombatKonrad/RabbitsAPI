@@ -11,7 +11,7 @@ public class TestDataHelper
     public RegisterUserModel GetRegisterUserModel()
     {
         var faker = new Faker<RegisterUserModel>()
-            .RuleFor(u => u.Username, f => f.Internet.UserName())
+            .RuleFor(u => u.Username, f => f.Internet.UserName().ClampLength(max: 16))
             .RuleFor(u => u.Email, f => f.Internet.Email())
             .RuleFor(u => u.Password, f => f.Internet.Password());
 
@@ -20,13 +20,13 @@ public class TestDataHelper
         return user;
     }
 
-    public List<User> GetUsers()
+    public List<User> GetUsers(int amount)
     {
         var faker = new Faker<User>()
             .RuleFor(u => u.Username, f => f.Internet.UserName().ClampLength(max: 16))
             .RuleFor(u => u.Email, f => f.Internet.Email())
             .RuleFor(u => u.PasswordHash, f => BCrypt.HashPassword(f.Internet.Password()));
 
-        return faker.Generate(3);
+        return faker.Generate(amount);
     }
 }

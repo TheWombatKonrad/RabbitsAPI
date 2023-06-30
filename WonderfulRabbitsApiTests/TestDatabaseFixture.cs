@@ -1,5 +1,8 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WonderfulRabbitsApi.DatabaseContext;
+using WonderfulRabbitsApi.Helpers;
 
 namespace WonderfulRabbitsApiTests;
 
@@ -23,9 +26,6 @@ public class TestDatabaseFixture
                 {
                     context.Database.EnsureDeleted();
                     context.Database.EnsureCreated();
-
-                    context.AddRange(helper.GetUsers());
-                    context.SaveChanges();
                 }
 
                 _databaseInitialized = true;

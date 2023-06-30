@@ -1,6 +1,5 @@
 namespace WonderfulRabbitsApiTests.ServiceTests;
 
-using Microsoft.Extensions.Options;
 using WonderfulRabbitsApi.Authorization;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Entities;
@@ -9,26 +8,30 @@ using AutoMapper;
 using WonderfulRabbitsApi.Services;
 using Microsoft.AspNetCore.Http;
 using FluentAssertions;
+using Bogus;
+using Bogus.Extensions;
+using BCrypt.Net;
+using WonderfulRabbitsApi.Models.Users;
+using Microsoft.Extensions.Options;
 
 public class UserServiceTests : IClassFixture<TestDatabaseFixture>
 {
     private TestDataHelper helper;
     private IMapper mapper;
     private IJwtUtils jwtUtils;
-    private IOptions<AppSettings> appSettings;
     private TestDatabaseFixture fixture;
 
     public UserServiceTests(TestDatabaseFixture fixture)
     {
         this.fixture = fixture;
+
         helper = new TestDataHelper();
         mapper = new Mapper(AutoMapperConfiguration.Configure());
-        appSettings = new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "thisISaTESTINGsecret28282" });
-        jwtUtils = new JwtUtils(appSettings);
+        jwtUtils = new JwtUtils(new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "myBestTestingsecret1234skskskksa" }));
     }
 
     [Fact]
-    public async void RegisterUser_WhenANewUserIsRegistered_ThenItShouldBeAddedToTheDB()
+    public async void RegisterUserAsync_WhenANewUserIsRegistered_ThenItShouldBeAddedToTheDB()
     {
         //Arrange
         using var context = fixture.CreateContext();
@@ -56,5 +59,47 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
 
         result.PasswordHash.Should().NotBeEquivalentTo(userModel.Password);
         result.PasswordHash.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async void RegisterUserAsync_WhenTheUsernameAlreadyExists_TheUserShouldNotBeAdded()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        var id = await sut.RegisterUserAsync(userModel);
+
+        //Act & Assert
+        await sut.Invoking(y => y.RegisterUserAsync(userModel)).Should()
+            .ThrowAsync<AppException>()
+            .WithMessage("Username '" + userModel.Username + "' is already taken");
+    }
+
+    [Fact]
+    public async void AuthenticateUser_WhenUsernameAndPasswordIsValid_AWorkingTokenShouldBeReturned()
+    {
+        //Arrange
+        using var context = fixture.CreateContext();
+        context.Database.BeginTransaction();
+
+        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+
+        var userModel = helper.GetRegisterUserModel();
+        var userId = await sut.RegisterUserAsync(userModel);
+
+        //Act
+        var result = sut.AuthenticateUser(new AuthenticateRequest()
+        {
+            Username = userModel.Username,
+            Password = userModel.Password
+        });
+
+        //Assert
+        var id = jwtUtils.ValidateToken(result.Token);
+        id.Equals(userId);
     }
 }
