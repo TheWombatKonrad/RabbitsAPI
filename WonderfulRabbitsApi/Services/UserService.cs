@@ -44,12 +44,12 @@ public class UserService : IUserService
         return response;
     }
 
-    public async Task<List<User>> GetUsers()
+    public async Task<List<User>> GetUsersAsync()
     {
         return await _context.Users.ToListAsync();
     }
 
-    public async Task<User> GetUser(int id)
+    public async Task<User> GetUserAsync(int id)
     {
         return await getById(id);
     }

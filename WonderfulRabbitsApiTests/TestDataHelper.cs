@@ -6,6 +6,8 @@ using WonderfulRabbitsApi.Entities;
 using BCrypt.Net;
 using WonderfulRabbitsApi.Models.Users;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text;
 
 public class TestDataHelper
 {
@@ -29,5 +31,51 @@ public class TestDataHelper
             .RuleFor(u => u.PasswordHash, f => BCrypt.HashPassword(f.Internet.Password()));
 
         return faker.Generate(amount);
+    }
+
+    public string HashPassword(string password)
+    {
+        return BCrypt.HashPassword(password);
+    }
+
+    public async Task<string> GetAuthenticationToken(HttpClient client, AuthenticateRequestModel model)
+    {
+        var json = JsonSerializer.Serialize(model);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/authenticate")
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+        var responseModel = await response.Content.ReadFromJsonAsync<AuthenticateResponseModel>();
+
+        return responseModel.Token;
+    }
+
+    public async Task<UserModel> GetUserFromClient(HttpClient client, int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{id}");
+
+        var response = await client.SendAsync(request);
+        var userModel = await response.Content.ReadFromJsonAsync<UserModel>();
+
+        return userModel;
+    }
+
+    public async Task<int> RegisterUserAndGetId(HttpClient client, RegisterUserModel model)
+    {
+        var json = JsonSerializer.Serialize(model);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/register")
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+
+        var response = await client.SendAsync(request);
+
+        var id = (await response.Content.ReadFromJsonAsync<UserModel>()).Id;
+
+        return id;
     }
 }

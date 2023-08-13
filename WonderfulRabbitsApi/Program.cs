@@ -13,7 +13,11 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dataContext = scope.ServiceProvider.GetRequiredService<RabbitDbContext>();
-    dataContext.Database.Migrate();
+
+    if (!dataContext.Database.IsInMemory())
+    {
+        dataContext.Database.Migrate();
+    }
 }
 
 startup.Configure(app);

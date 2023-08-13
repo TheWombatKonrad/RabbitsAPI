@@ -20,7 +20,7 @@ namespace WonderfulRabbitsApi.Authorization
             if (userId != null)
             {
                 // attach user to context on successful jwt validation
-                context.Items["User"] = userService.GetUser(userId.Value);
+                context.Items["User"] = await userService.GetUserAsync(userId.Value);
             }
 
             await _next(context);

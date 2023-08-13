@@ -2,7 +2,6 @@
 using WonderfulRabbitsApi.Models.Users;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Services.Interfaces;
 
 namespace WonderfulRabbitsApi.Controllers
@@ -23,17 +22,17 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            var users = _mapper.Map<List<UserModel>>(_userService.GetUsers());
+            var users = _mapper.Map<List<UserModel>>(await _userService.GetUsersAsync());
             return Ok(users);
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetUser(int id)
+        public async Task<IActionResult> GetUser(int id)
         {
-            var user = _mapper.Map<UserModel>(_userService.GetUser(id));
+            var user = _mapper.Map<UserModel>(await _userService.GetUserAsync(id));
             return Ok(user);
         }
 
@@ -46,9 +45,9 @@ namespace WonderfulRabbitsApi.Controllers
 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, UpdateUserModel model)
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserModel model)
         {
-            _userService.UpdateUserAsync(id, model);
+            await _userService.UpdateUserAsync(id, model);
             return Ok(new { message = "User updated successfully" });
         }
 
@@ -64,15 +63,15 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUserAsync(RegisterUserModel model)
         {
-            int? id = await _userService.RegisterUserAsync(model);
+            int id = await _userService.RegisterUserAsync(model);
 
             return Ok(new { message = "Registration successful", id = id });
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteUserAsync(int id)
+        public async Task<IActionResult> DeleteUserAsync(int id)
         {
-            _userService.DeleteUserAsync(id);
+            await _userService.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
 

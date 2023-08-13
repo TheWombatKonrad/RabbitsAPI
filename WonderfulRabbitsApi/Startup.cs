@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using WonderfulRabbitsApi.Helpers.MapperProfiles;
+using AutoMapper;
 
 namespace WonderfulRabbitsApi
 {
@@ -74,10 +76,8 @@ namespace WonderfulRabbitsApi
             ;
             services.AddSwaggerGen();//acces via https://localhost:4000/swagger
 
-            // configure automapper with all automapper profiles from this assembly
-            //https://stackoverflow.com/questions/40275195/how-to-set-up-automapper-in-asp-net-core
-            services.AddAutoMapper(typeof(Program));
-            AutoMapperConfiguration.Configure();
+            // automapper
+            services.AddAutoMapper(typeof(UserMapperProfile));
 
             services.Configure<AppSettings>(_configuration.GetSection("AppSettings"));
 

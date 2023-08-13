@@ -48,7 +48,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         context.ChangeTracker.Clear();
 
         //Assert
-        var result = await sut.GetUser(id);
+        var result = await sut.GetUserAsync(id);
         result.Should().BeEquivalentTo(user,
             options => options
                 .Excluding(x => x.Id)
@@ -79,7 +79,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     }
 
     [Fact]
-    public async void AuthenticateUser_WhenUsernameAndPasswordIsValid_AWorkingTokenShouldBeReturned()
+    public async void AuthenticateUser_WhenUsernameAndPasswordIsValid_ThenAWorkingTokenShouldBeReturned()
     {
         //Arrange
         using var context = fixture.CreateContext();
@@ -146,7 +146,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         expected.Id = id;
 
         //Act
-        var result = await sut.GetUser(id);
+        var result = await sut.GetUserAsync(id);
 
         //Assert
         result.Should().BeEquivalentTo(expected, options =>
@@ -169,7 +169,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
 
         //Act
-        var result = await sut.GetUsers();
+        var result = await sut.GetUsersAsync();
 
         //Assert
         result.Should().BeEquivalentTo(users, options =>
