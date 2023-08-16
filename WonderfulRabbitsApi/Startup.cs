@@ -77,7 +77,7 @@ namespace WonderfulRabbitsApi
             services.AddSwaggerGen();//acces via https://localhost:4000/swagger
 
             // automapper
-            services.AddAutoMapper(typeof(UserMapperProfile));
+            services.AddAutoMapper(typeof(UserMapperProfile), typeof(RabbitMapperProfile));
 
             services.Configure<AppSettings>(_configuration.GetSection("AppSettings"));
 

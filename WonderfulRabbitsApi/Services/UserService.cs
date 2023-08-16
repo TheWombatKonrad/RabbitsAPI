@@ -56,7 +56,6 @@ public class UserService : IUserService
 
     // public User GetCurrentUser()
     // {
-    //     //doesn't allow anonymous so didn't add exception...
     //     var user = (User)_httpContextAccessor.HttpContext.Items["User"];
     //     return createUserView(user);
     // }
@@ -77,7 +76,7 @@ public class UserService : IUserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return _context.Users.First(x => x.Username == model.Username).Id;
+        return user.Id;
     }
 
     public async Task UpdateUserAsync(int id, UpdateUserModel model)

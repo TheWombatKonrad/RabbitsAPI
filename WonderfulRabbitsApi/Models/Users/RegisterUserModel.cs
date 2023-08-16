@@ -1,7 +1,7 @@
-namespace WonderfulRabbitsApi.Models.Users;
 
 using System.ComponentModel.DataAnnotations;
 
+namespace WonderfulRabbitsApi.Models.Users;
 public class RegisterUserModel
 {
     [StringLength(16, ErrorMessage = "The {0} value cannot exceed {1} characters. ")]
