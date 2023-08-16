@@ -10,6 +10,7 @@ namespace WonderfulRabbitsApi.Helpers
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<UserMapperProfile>();
+                cfg.AddProfile<RabbitMapperProfile>();
             });
 
             return config;

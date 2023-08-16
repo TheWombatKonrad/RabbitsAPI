@@ -8,6 +8,7 @@ using WonderfulRabbitsApi.Models.Users;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text;
+using Xunit.Sdk;
 
 public class TestDataHelper
 {
@@ -29,6 +30,15 @@ public class TestDataHelper
             .RuleFor(u => u.Username, f => f.Internet.UserName().ClampLength(max: 16))
             .RuleFor(u => u.Email, f => f.Internet.Email())
             .RuleFor(u => u.PasswordHash, f => BCrypt.HashPassword(f.Internet.Password()));
+
+        return faker.Generate(amount);
+    }
+
+    public List<Rabbit> GetRabbits(int amount)
+    {
+        var faker = new Faker<Rabbit>()
+            .RuleFor(r => r.Name, f => f.Name.FirstName().ClampLength(max: 16))
+            .RuleFor(r => r.Birthdate, f => f.Date.Past());
 
         return faker.Generate(amount);
     }
