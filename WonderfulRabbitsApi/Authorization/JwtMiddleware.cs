@@ -1,5 +1,6 @@
 ﻿
 
+using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Services.Interfaces;
 
 namespace WonderfulRabbitsApi.Authorization
@@ -19,8 +20,15 @@ namespace WonderfulRabbitsApi.Authorization
             var userId = jwtUtils.ValidateToken(token);
             if (userId != null)
             {
-                // attach user to context on successful jwt validation
-                context.Items["User"] = await userService.GetUserAsync(userId.Value);
+                try
+                {
+                    // attach user to context on successful jwt validation
+                    context.Items["User"] = await userService.GetUserAsync(userId.Value);
+                }
+                catch
+                {
+                    throw new AppException("Authorization Error: The user could not be found.");
+                }
             }
 
             await _next(context);
