@@ -1,4 +1,5 @@
 using WonderfulRabbitsApi.Entities;
+using WonderfulRabbitsApi.Models.Rabbits;
 
 namespace WonderfulRabbitsApi.Models.Users
 {
@@ -7,6 +8,6 @@ namespace WonderfulRabbitsApi.Models.Users
         public int Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
-        public virtual ICollection<Rabbit> Rabbits { get; set; } = new List<Rabbit>();
+        public ICollection<RabbitModel> Rabbits { get; set; } = new List<RabbitModel>();
     }
 }

@@ -3,6 +3,9 @@ using WonderfulRabbitsApi.Models.Users;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using WonderfulRabbitsApi.Services.Interfaces;
+using WonderfulRabbitsApi.Models.Rabbits;
+using System.Text.Json;
+using WonderfulRabbitsApi.Helpers;
 
 namespace WonderfulRabbitsApi.Controllers
 {
@@ -11,12 +14,12 @@ namespace WonderfulRabbitsApi.Controllers
     [Route("api/users")]
     public class UsersController : ControllerBase
     {
-        private IUserService _userService;
+        private IUserService _service;
         private IMapper _mapper;
 
-        public UsersController(IUserService userService, IMapper mapper)
+        public UsersController(IUserService service, IMapper mapper)
         {
-            _userService = userService;
+            _service = service;
             _mapper = mapper;
         }
 
@@ -24,7 +27,7 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
-            var users = _mapper.Map<List<UserModel>>(await _userService.GetUsersAsync());
+            var users = _mapper.Map<List<UserModel>>(await _service.GetUsersAsync());
             return Ok(users);
         }
 
@@ -32,7 +35,8 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            var user = _mapper.Map<UserModel>(await _userService.GetUserAsync(id));
+            var user = _mapper.Map<UserModel>(await _service.GetUserAsync(id));
+
             return Ok(user);
         }
 
@@ -47,7 +51,7 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UpdateUserModel model)
         {
-            await _userService.UpdateUserAsync(id, model);
+            await _service.UpdateUserAsync(id, model);
             return Ok(new { message = "User updated successfully" });
         }
 
@@ -55,7 +59,7 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpPost("authenticate")]
         public IActionResult AuthenticateUser(AuthenticateRequestModel model)
         {
-            var response = _userService.AuthenticateUser(model);
+            var response = _service.AuthenticateUser(model);
             return Ok(response);
         }
 
@@ -63,15 +67,15 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUserAsync(RegisterUserModel model)
         {
-            int id = await _userService.RegisterUserAsync(model);
+            int id = await _service.RegisterUserAsync(model);
 
-            return Ok(new { message = "Registration successful", id = id });
+            return Ok(new { message = "Registration successful", id });
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUserAsync(int id)
         {
-            await _userService.DeleteUserAsync(id);
+            await _service.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
 
