@@ -5,8 +5,7 @@ using System.Text.Json.Serialization;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using WonderfulRabbitsApi.Helpers.MapperProfiles;
-using AutoMapper;
+using System.Reflection;
 
 namespace WonderfulRabbitsApi
 {
@@ -18,7 +17,6 @@ namespace WonderfulRabbitsApi
             _configuration = configuration;
         }
 
-        //this runs at every request
         public void Configure(WebApplication app)
         {
             //the order of things is important so be careful when adding things
@@ -46,7 +44,6 @@ namespace WonderfulRabbitsApi
             }
         }
 
-        //this runs when application starts
         public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
         {
             //the order of things is important so be careful when adding things
@@ -74,18 +71,18 @@ namespace WonderfulRabbitsApi
             services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions
                             .ReferenceHandler = ReferenceHandler.IgnoreCycles);
             ;
-            services.AddSwaggerGen();//acces via https://localhost:4000/swagger
-
-            // automapper
-            services.AddAutoMapper(typeof(UserMapperProfile), typeof(RabbitMapperProfile));
+            services.AddSwaggerGen();
 
             services.Configure<AppSettings>(_configuration.GetSection("AppSettings"));
 
             // configure DI for application services
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<IUserService, UserService>();
-            // services.AddScoped<IRabbitService, RabbitService>();
+            services.AddScoped<IRabbitService, RabbitService>();
             // services.AddScoped<IPhotoService, PhotoService>();
+
+            // automapper
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             //so httpcontext can be accessed in the services
             services.AddHttpContextAccessor();
