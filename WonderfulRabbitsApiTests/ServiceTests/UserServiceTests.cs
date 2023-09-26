@@ -10,36 +10,37 @@ using Microsoft.AspNetCore.Http;
 using FluentAssertions;
 using WonderfulRabbitsApi.Models.Users;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 public class UserServiceTests : IClassFixture<TestDatabaseFixture>
 {
-    private TestDataHelper helper;
-    private IMapper mapper;
-    private IJwtUtils jwtUtils;
-    private TestDatabaseFixture fixture;
+    private TestDataHelper _helper;
+    private IMapper _mapper;
+    private IJwtUtils _jwtUtils;
+    private SqliteConnectionFactory _factory;
 
-    public UserServiceTests(TestDatabaseFixture fixture)
+    public UserServiceTests()
     {
-        this.fixture = fixture;
+        _factory = new SqliteConnectionFactory();
 
-        helper = new TestDataHelper();
-        mapper = new Mapper(AutoMapperConfiguration.Configure());
-        jwtUtils = new JwtUtils(new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "myBestTestingsecret1234skskskksa" }));
+        _helper = new TestDataHelper();
+        _mapper = new Mapper(AutoMapperConfiguration.Configure());
+        _jwtUtils = new JwtUtils(new OptionsWrapper<AppSettings>(new AppSettings() { Secret = "myBestTestingsecret1234skskskksa" }));
     }
 
     [Fact]
     public async void RegisterUserAsync_WhenANewUserIsRegistered_ThenItShouldBeAddedToTheDB()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
 
         //the database isn't actually updated, avoiding test interference
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
-        var user = mapper.Map<User>(userModel);
+        var userModel = _helper.GetRegisterUserModel();
+        var user = _mapper.Map<User>(userModel);
 
         //Act
         var id = await sut.RegisterUserAsync(userModel);
@@ -62,12 +63,12 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     public async void RegisterUserAsync_WhenTheUsernameAlreadyExists_ThenAnExceptionShouldBeSent()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
+        var userModel = _helper.GetRegisterUserModel();
         var id = await sut.RegisterUserAsync(userModel);
 
         context.ChangeTracker.Clear();
@@ -82,12 +83,12 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     public async void AuthenticateUser_WhenUsernameAndPasswordIsValid_ThenAWorkingTokenShouldBeReturned()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
+        var userModel = _helper.GetRegisterUserModel();
         var userId = await sut.RegisterUserAsync(userModel);
 
         context.ChangeTracker.Clear();
@@ -100,7 +101,7 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
         });
 
         //Assert
-        var id = jwtUtils.ValidateToken(result.Token);
+        var id = _jwtUtils.ValidateToken(result.Token);
         id.Equals(userId);
     }
 
@@ -108,12 +109,12 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     public async void AuthenticateUser_WhenPasswordIsInvalid_ThenAnExceptionShouldBeSent()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
+        var userModel = _helper.GetRegisterUserModel();
         await sut.RegisterUserAsync(userModel);
 
         context.ChangeTracker.Clear();
@@ -132,103 +133,121 @@ public class UserServiceTests : IClassFixture<TestDatabaseFixture>
     public async void GetUser_WhenUserExists_ThenItShouldBeReturned()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
-        var id = await sut.RegisterUserAsync(userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.Rabbits.Add(_helper.GetRabbits(1)[0]);
+        context.Users.Add(user);
+
+        context.SaveChanges();
 
         context.ChangeTracker.Clear();
 
-        var expected = mapper.Map<User>(userModel);
-        expected.Id = id;
-
         //Act
-        var result = await sut.GetUserAsync(id);
+        var result = await sut.GetUserAsync(user.Id);
 
         //Assert
-        result.Should().BeEquivalentTo(expected, options =>
-            options.Excluding(x => x.PasswordHash));
+        result.Should().BeEquivalentTo(user, options => options.IgnoringCyclicReferences());
+    }
+
+    [Fact]
+    public async void GetUser_WhenTheUserDoesntExist_ThenAnExceptionShouldBeThrown()
+    {
+        //Arrange
+        var context = _factory.CreateContextForSQLite();
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
+        context.Database.BeginTransaction();
+
+        //Act & Assert
+        await sut.Invoking(y => y.GetUserAsync(1)).Should()
+            .ThrowAsync<KeyNotFoundException>()
+            .WithMessage("User not found");
     }
 
     [Fact]
     public async void GetUsers_WhenUsersExist_ThenTheyShouldBeReturned()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var users = helper.GetUsers(3);
+        var users = _helper.GetUsers(3);
+        users[0].Rabbits.Add(_helper.GetRabbits(1)[0]);
         context.Users.AddRange(users);
         context.SaveChanges();
 
         context.ChangeTracker.Clear();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
         //Act
         var result = await sut.GetUsersAsync();
 
         //Assert
         result.Should().BeEquivalentTo(users, options =>
-            options.Excluding(x => x.PasswordHash));
+            options.Excluding(x => x.PasswordHash).IgnoringCyclicReferences());
     }
 
     [Fact]
     public async void UpdateUser_WhenUserExists_ThenItShouldBeUpdated()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var user = _helper.GetUsers(1)[0];
+        user.Rabbits.Add(_helper.GetRabbits(1)[0]);
+        context.Users.Add(user);
+        context.SaveChanges();
 
-        var userModel = helper.GetRegisterUserModel();
-        var id = await sut.RegisterUserAsync(userModel);
         context.ChangeTracker.Clear();
 
         UpdateUserModel updateModel = new UpdateUserModel()
         {
             Username = "new",
-            Password = userModel.Password,
-            Email = userModel.Email
         };
-
-        var expected = mapper.Map<User>(updateModel);
-        expected.Id = id;
+        user.Username = "new";
 
         //Act
-        await sut.UpdateUserAsync(id, updateModel);
+        await sut.UpdateUserAsync(user.Id, updateModel);
         context.ChangeTracker.Clear();
 
         //Assert
-        var result = context.Users.FirstOrDefault(x => x.Id == id);
+        var result = context.Users
+            .Include(i => i.Rabbits)
+            .FirstOrDefault(x => x.Id == user.Id);
 
-        result.Should().BeEquivalentTo(expected, options =>
-            options.Excluding(x => x.PasswordHash));
+        result.Should().BeEquivalentTo(user, options =>
+            options
+                .Excluding(x => x.PasswordHash)
+                .IgnoringCyclicReferences());
     }
 
     [Fact]
     public async void DeleteUser_WhenUserExists_ThenItShouldBeDeleted()
     {
         //Arrange
-        using var context = fixture.CreateContext();
+        using var context = _factory.CreateContextForSQLite();
         context.Database.BeginTransaction();
 
-        var sut = new UserService(context, new HttpContextAccessor(), mapper, jwtUtils);
+        var sut = new UserService(context, new HttpContextAccessor(), _mapper, _jwtUtils);
 
-        var userModel = helper.GetRegisterUserModel();
-        var id = await sut.RegisterUserAsync(userModel);
+        var user = _helper.GetUsers(1)[0];
+        context.Users.Add(user);
+        context.SaveChanges();
+
         context.ChangeTracker.Clear();
 
         //Act
-        await sut.DeleteUserAsync(id);
+        await sut.DeleteUserAsync(user.Id);
         context.ChangeTracker.Clear();
 
         //Assert
-        var result = context.Users.FirstOrDefault(x => x.Id == id);
+        var result = context.Users.FirstOrDefault(x => x.Id == user.Id);
         result.Should().BeNull();
     }
 }

@@ -46,12 +46,12 @@ public class UserService : IUserService
 
     public async Task<List<User>> GetUsersAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users.Include(i => i.Rabbits).ToListAsync();
     }
 
     public async Task<User> GetUserAsync(int id)
     {
-        return await getById(id);
+        return await GetUserByIdAsync(id);
     }
 
     // public User GetCurrentUser()
@@ -81,7 +81,7 @@ public class UserService : IUserService
 
     public async Task UpdateUserAsync(int id, UpdateUserModel model)
     {
-        var user = await getById(id);
+        var user = await GetUserByIdAsync(id);
 
         // validate
         if (model.Username != user.Username && _context.Users.Any(x => x.Username == model.Username))
@@ -99,7 +99,7 @@ public class UserService : IUserService
 
     public async Task DeleteUserAsync(int id)
     {
-        var user = await getById(id);
+        var user = await GetUserByIdAsync(id);
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
@@ -109,9 +109,11 @@ public class UserService : IUserService
     //Helper Methods
     //********************************
 
-    private async Task<User> getById(int id)
+    private async Task<User> GetUserByIdAsync(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users
+            .Include(i => i.Rabbits)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (user == null) throw new KeyNotFoundException("User not found");
         return user;
     }
