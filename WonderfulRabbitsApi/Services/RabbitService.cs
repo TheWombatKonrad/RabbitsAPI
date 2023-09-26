@@ -1,12 +1,9 @@
 namespace WonderfulRabbitsApi.Services;
 
 using AutoMapper;
-using BCrypt.Net;
-using WonderfulRabbitsApi.Authorization;
 using WonderfulRabbitsApi.DatabaseContext;
 using WonderfulRabbitsApi.Entities;
 using WonderfulRabbitsApi.Helpers;
-using WonderfulRabbitsApi.Models.Users;
 using WonderfulRabbitsApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using WonderfulRabbitsApi.Models.Rabbits;
@@ -17,27 +14,23 @@ public class RabbitService : IRabbitService
     private RabbitDbContext _context;
     private IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
-    private IJwtUtils _jwtUtils;
 
     public RabbitService(
         RabbitDbContext context,
         IHttpContextAccessor httpContextAccessor,
-        IMapper mapper,
-        IJwtUtils jwtUtils)
+        IMapper mapper)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
-        _jwtUtils = jwtUtils;
     }
-
 
     public async Task<int> RegisterRabbitAsync(RegisterRabbitModel model)
     {
         var rabbit = _mapper.Map<Rabbit>(model);
+        rabbit.User = GetCurrentUser();
 
-        if (model.UserId != null) rabbit.User = await GetUserByIdAsync(model.UserId);
-        else rabbit.User = GetCurrentUser();
+        if (rabbit.User == null) throw new AppException("Error: The current user could not be retrieved.");
 
         _context.Rabbits.Add(rabbit);
         await _context.SaveChangesAsync();
@@ -50,19 +43,27 @@ public class RabbitService : IRabbitService
         return await GetRabbitByIdAsync(id);
     }
 
-    public Task<List<Rabbit>> GetRabbitsAsync()
+    public async Task<List<Rabbit>> GetRabbitsAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Rabbits
+            .Include(i => i.User)
+            .ToListAsync();
     }
 
-    public Task UpdateRabbitAsync(int id, UpdateRabbitModel model)
+    public async Task UpdateRabbitAsync(int id, UpdateRabbitModel model)
     {
-        throw new NotImplementedException();
+        var rabbit = await GetRabbitByIdAsync(id);
+        _mapper.Map(model, rabbit);
+        _context.Rabbits.Update(rabbit);
+        await _context.SaveChangesAsync();
     }
 
-    public Task DeleteRabbitAsync(int id)
+    public async Task DeleteRabbitAsync(int id)
     {
-        throw new NotImplementedException();
+        var rabbit = _context.Rabbits.FirstOrDefault(x => x.Id == id);
+
+        _context.Remove(rabbit);
+        await _context.SaveChangesAsync();
     }
 
     //****************
@@ -71,7 +72,9 @@ public class RabbitService : IRabbitService
 
     private async Task<Rabbit> GetRabbitByIdAsync(int id)
     {
-        var rabbit = await _context.Rabbits.FindAsync(id);
+        var rabbit = await _context.Rabbits
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (rabbit == null) throw new KeyNotFoundException("Rabbit not found");
         return rabbit;
     }
@@ -80,6 +83,7 @@ public class RabbitService : IRabbitService
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null) throw new KeyNotFoundException("The user could not be found.");
+
         return user;
     }
 
