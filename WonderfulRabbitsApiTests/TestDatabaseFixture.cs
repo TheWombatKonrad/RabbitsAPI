@@ -9,12 +9,9 @@ public class TestDatabaseFixture
 
     private static readonly object _lock = new();
     private static bool _databaseInitialized;
-    private TestDataHelper helper;
 
     public TestDatabaseFixture()
     {
-        helper = new TestDataHelper();
-
         lock (_lock)
         {
             if (!_databaseInitialized)

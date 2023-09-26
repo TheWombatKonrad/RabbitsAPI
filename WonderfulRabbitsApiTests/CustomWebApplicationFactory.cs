@@ -33,7 +33,7 @@ public class CustomWebApplicationFactory<TProgram>
                 options.UseInMemoryDatabase("InMemoryDbForTesting");
             });
 
-            services.AddSingleton<ISeedDataClass, SeedDataClass>();
+            //services.AddSingleton<ISeedDataClass, SeedDataClass>();
 
             var sp = services.BuildServiceProvider();
 
@@ -42,7 +42,7 @@ public class CustomWebApplicationFactory<TProgram>
                 var scopedServices = scope.ServiceProvider;
                 var appDb = scopedServices.GetRequiredService<RabbitDbContext>();
 
-                var seeder = scopedServices.GetRequiredService<ISeedDataClass>();
+                //var seeder = scopedServices.GetRequiredService<ISeedDataClass>();
 
                 appDb.Database.EnsureDeleted();
                 appDb.Database.EnsureCreated();
