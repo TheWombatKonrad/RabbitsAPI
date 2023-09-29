@@ -8,7 +8,7 @@ using WonderfulRabbitsApi.Models.Users;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text;
-using Xunit.Sdk;
+using WonderfulRabbitsApi.Models.Photos;
 
 public class TestDataHelper
 {
@@ -87,5 +87,25 @@ public class TestDataHelper
         var id = (await response.Content.ReadFromJsonAsync<UserModel>()).Id;
 
         return id;
+    }
+
+    public RegisterPhotoModel GetRegisterPhotoModel()
+    {
+        var faker = new Faker<RegisterPhotoModel>()
+            .RuleFor(r => r.Title, f => f.Lorem.Sentence().ClampLength(max: 16));
+
+        var model = faker.Generate(1)[0];
+        model.ImageData = GetFakeImageData();
+
+        return model;
+    }
+
+    private byte[] GetFakeImageData()
+    {
+        Random rnd = new Random();
+        byte[] imageData = new byte[1000];
+        rnd.NextBytes(imageData);
+
+        return imageData;
     }
 }

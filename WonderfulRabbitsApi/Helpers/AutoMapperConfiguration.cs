@@ -1,4 +1,5 @@
 using AutoMapper;
+using WonderfulRabbitsApi.Entities;
 using WonderfulRabbitsApi.Helpers.MapperProfiles;
 
 namespace WonderfulRabbitsApi.Helpers
@@ -11,6 +12,7 @@ namespace WonderfulRabbitsApi.Helpers
             {
                 cfg.AddProfile<UserMapperProfile>();
                 cfg.AddProfile<RabbitMapperProfile>();
+                cfg.AddProfile<PhotoMapperProfile>();
             });
 
             return config;
