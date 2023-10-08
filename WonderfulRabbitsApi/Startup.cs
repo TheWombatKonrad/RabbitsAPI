@@ -59,7 +59,7 @@ namespace WonderfulRabbitsApi
                     policy =>
                     {
                         policy.WithOrigins("https://localhost:7009",//api
-                            "https://localhost:4001"//webb
+                            "http://localhost:8081"//webb
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
@@ -79,7 +79,7 @@ namespace WonderfulRabbitsApi
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRabbitService, RabbitService>();
-            // services.AddScoped<IPhotoService, PhotoService>();
+            services.AddScoped<IPhotoService, PhotoService>();
 
             // automapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
