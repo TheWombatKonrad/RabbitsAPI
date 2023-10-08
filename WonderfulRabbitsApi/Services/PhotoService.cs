@@ -9,24 +9,22 @@ using Microsoft.EntityFrameworkCore;
 using WonderfulRabbitsApi.Models.Rabbits;
 using System.Collections.Generic;
 using WonderfulRabbitsApi.Models.Photos;
+using System.Collections.Immutable;
 
 public class PhotoService : IPhotoService
 {
     private RabbitDbContext _context;
-    private IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
 
     public PhotoService(
         RabbitDbContext context,
-        IHttpContextAccessor httpContextAccessor,
         IMapper mapper)
     {
         _context = context;
-        _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
     }
 
-    public async Task<int> RegisterPhoto(RegisterPhotoModel model)
+    public async Task<int> RegisterPhotoAsync(RegisterPhotoModel model)
     {
         var photo = _mapper.Map<Photo>(model);
         photo.DateAdded = DateTime.Now;
@@ -37,6 +35,19 @@ public class PhotoService : IPhotoService
 
         return photo.Id;
 
+    }
+    public async Task<Photo> GetPhotoAsync(int id)
+    {
+        var photo = await _context.Photos
+            .Include(i => i.Rabbit)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        return photo;
+    }
+
+    public async Task<List<Photo>> GetPhotosAsync()
+    {
+        return await _context.Photos.Include(i => i.Rabbit).ToListAsync();
     }
 
     //****************

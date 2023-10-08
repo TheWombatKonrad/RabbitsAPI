@@ -48,7 +48,7 @@ public class PhotoServiceTests
         photo.Rabbit = rabbit;
 
         //Act
-        photo.Id = await sut.RegisterPhoto(model);
+        photo.Id = await sut.RegisterPhotoAsync(model);
 
         //Assert
         var result = _context.Photos

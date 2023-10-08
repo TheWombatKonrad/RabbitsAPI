@@ -1,5 +1,6 @@
 using AutoMapper;
 using WonderfulRabbitsApi.Entities;
+using WonderfulRabbitsApi.Models;
 using WonderfulRabbitsApi.Models.Photos;
 using WonderfulRabbitsApi.Models.Rabbits;
 
@@ -14,6 +15,8 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
             .ForMember(x => x.Rabbit, opt => opt.Ignore())
             .ForMember(x => x.DateAdded, opt => opt.Ignore())
             .ForSourceMember(x => x.RabbitId, opt => opt.DoNotValidate());
+
+            CreateMap<Photo, PhotoModel>();
         }
     }
 }
