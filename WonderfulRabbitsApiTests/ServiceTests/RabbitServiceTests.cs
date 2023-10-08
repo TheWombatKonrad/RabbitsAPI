@@ -11,7 +11,7 @@ using WonderfulRabbitsApi.Models.Rabbits;
 using Moq;
 using Microsoft.EntityFrameworkCore;
 
-public class RabbitServiceTests : IClassFixture<TestDatabaseFixture>
+public class RabbitServiceTests
 {
     private TestDataHelper _helper;
     private IMapper _mapper;
