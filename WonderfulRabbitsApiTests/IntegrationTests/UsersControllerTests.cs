@@ -50,7 +50,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     {
         //Arrange
         var userModel = _helper.GetRegisterUserModel();
-        await _helper.RegisterUserAndGetId(client, userModel);
+        await _helper.RegisterUserAndGetIdAsync(client, userModel);
 
         var requestModel = new AuthenticateRequestModel()
         {
@@ -77,7 +77,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     {
         //Arrange
         var userModel = _helper.GetRegisterUserModel();
-        await _helper.RegisterUserAndGetId(client, userModel);
+        await _helper.RegisterUserAndGetIdAsync(client, userModel);
 
         var requestModel = new AuthenticateRequestModel()
         {
@@ -104,7 +104,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     {
         //Arrange
         var userModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetId(client, userModel);
+        var id = await _helper.RegisterUserAndGetIdAsync(client, userModel);
         var token = await _helper.GetAuthenticationToken(client, new AuthenticateRequestModel()
         {
             Username = userModel.Username,
@@ -140,7 +140,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     {
         //Arrange 
         var registerModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetId(client, registerModel);
+        var id = await _helper.RegisterUserAndGetIdAsync(client, registerModel);
 
         var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{id}");
 
@@ -193,7 +193,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     {
         //Arrange
         var userModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetId(client, userModel);
+        var id = await _helper.RegisterUserAndGetIdAsync(client, userModel);
         var token = await _helper.GetAuthenticationToken(client, new AuthenticateRequestModel()
         {
             Username = userModel.Username,
