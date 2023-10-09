@@ -40,14 +40,6 @@ namespace WonderfulRabbitsApi.Controllers
             return Ok(user);
         }
 
-        // [HttpGet("current")]
-        // public IActionResult GetCurrentUser()
-        // {
-        //     var user = _userService.GetCurrentUser();
-        //     return Ok(user);
-        // }
-
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UpdateUserModel model)
         {
@@ -78,13 +70,5 @@ namespace WonderfulRabbitsApi.Controllers
             await _service.DeleteUserAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
-
-        // [HttpDelete("current")]
-        // public IActionResult DeleteCurrentUser()
-        // {
-        //     _userService.DeleteCurrentUser();
-        //     return Ok(new { message = "User deleted successfully" });
-        // }
-
     }
 }
