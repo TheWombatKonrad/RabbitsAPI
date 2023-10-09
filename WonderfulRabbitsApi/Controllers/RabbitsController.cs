@@ -36,7 +36,6 @@ namespace WonderfulRabbitsApi.Controllers
             return Ok(user);
         }
 
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRabbit(int id, UpdateRabbitModel model)
         {
