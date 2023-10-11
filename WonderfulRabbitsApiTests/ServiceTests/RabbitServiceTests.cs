@@ -11,7 +11,7 @@ using WonderfulRabbitsApi.Models.Rabbits;
 using Moq;
 using Microsoft.EntityFrameworkCore;
 
-public class RabbitServiceTests : IClassFixture<TestDatabaseFixture>
+public class RabbitServiceTests
 {
     private TestDataHelper _helper;
     private IMapper _mapper;
@@ -37,8 +37,8 @@ public class RabbitServiceTests : IClassFixture<TestDatabaseFixture>
         _context.SaveChanges();
 
         var rabbit = _helper.GetRabbits(1)[0];
+        rabbit.User = user;
         var model = _mapper.Map<RegisterRabbitModel>(rabbit);
-        rabbit.User = user; //user is retrieved from context later
 
         var httpContextAccessor = GetMockIHttpContextAccessorForCurrentUser(user);
         var sut = new RabbitService(_context, httpContextAccessor, _mapper);

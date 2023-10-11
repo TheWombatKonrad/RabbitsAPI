@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text;
 using WonderfulRabbitsApi.Models.Photos;
+using WonderfulRabbitsApi.Models.Rabbits;
+using System.Net.Http.Headers;
 
 public class TestDataHelper
 {
@@ -73,7 +75,7 @@ public class TestDataHelper
         return userModel;
     }
 
-    public async Task<int> RegisterUserAndGetId(HttpClient client, RegisterUserModel model)
+    public async Task<int> RegisterUserAndGetIdAsync(HttpClient client, RegisterUserModel model)
     {
         var json = JsonSerializer.Serialize(model);
 
@@ -84,9 +86,47 @@ public class TestDataHelper
 
         var response = await client.SendAsync(request);
 
-        var id = (await response.Content.ReadFromJsonAsync<UserModel>()).Id;
+        var user = await response.Content.ReadFromJsonAsync<UserModel>();
 
-        return id;
+        return user.Id;
+    }
+
+    public async Task<int> GetNewRabbitIdAsync(HttpClient client, int userId, string token)
+    {
+        var rabbit = GetRabbits(1)[0];
+        var model = new RegisterRabbitModel()
+        {
+            Name = rabbit.Name,
+            UserId = userId
+        };
+
+        var request = GetRegisterRabbitRequest(model, token);
+        var response = await client.SendAsync(request);
+        var responseRabbit = await response.Content.ReadFromJsonAsync<RabbitModel>();
+
+        return responseRabbit.Id;
+    }
+
+    public HttpRequestMessage GetRegisterRabbitRequest(RegisterRabbitModel model, string token)
+    {
+        var json = JsonSerializer.Serialize(model);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/rabbits/register")
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        return request;
+    }
+
+    public async Task<RabbitModel> GetRabbitFromClient(HttpClient client, int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/rabbits/{id}");
+
+        var response = await client.SendAsync(request);
+        var model = await response.Content.ReadFromJsonAsync<RabbitModel>();
+
+        return model;
     }
 
     public RegisterPhotoModel GetRegisterPhotoModel()

@@ -12,7 +12,7 @@ using WonderfulRabbitsApi.Models.Users;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 
-public class UserServiceTests : IClassFixture<TestDatabaseFixture>
+public class UserServiceTests
 {
     private TestDataHelper _helper;
     private IMapper _mapper;
