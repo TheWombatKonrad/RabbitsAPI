@@ -59,7 +59,7 @@ namespace WonderfulRabbitsApi
                     policy =>
                     {
                         policy.WithOrigins("https://localhost:7009",//api
-                            "https://localhost:4001"//webb
+                            "http://localhost:8081"//webb
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
