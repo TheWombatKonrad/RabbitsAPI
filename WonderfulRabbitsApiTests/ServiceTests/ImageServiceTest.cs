@@ -11,13 +11,13 @@ using WonderfulRabbitsApi.Models.Rabbits;
 using Moq;
 using Microsoft.EntityFrameworkCore;
 
-public class PhotoServiceTests
+public class ImageServiceTests
 {
     private TestDataHelper _helper;
     private IMapper _mapper;
     private SqliteConnectionFactory _factory;
 
-    public PhotoServiceTests()
+    public ImageServiceTests()
     {
         _factory = new SqliteConnectionFactory();
         _helper = new TestDataHelper();
@@ -25,7 +25,7 @@ public class PhotoServiceTests
     }
 
     [Fact]
-    public async void RegisterPhoto_WhenAPhotoIsRegistered_ThenItShouldBeAddedToTheDb()
+    public async void RegisterImage_WhenAnImageIsRegistered_ThenItShouldBeAddedToTheDb()
     {
         //Arrange
         using var _context = _factory.CreateContextForSQLite();
@@ -40,22 +40,22 @@ public class PhotoServiceTests
         _context.Rabbits.Add(rabbit);
         _context.SaveChanges();
 
-        var model = _helper.GetRegisterPhotoModel();
+        var model = _helper.GetRegisterImagesModel();
         model.RabbitId = rabbit.Id;
 
-        var sut = new PhotoService(_context, new HttpContextAccessor(), _mapper);
-        var photo = _mapper.Map<Photo>(model);
-        photo.Rabbit = rabbit;
+        var sut = new ImageService(_context, _mapper);
+        var image = _mapper.Map<Image>(model);
+        image.Rabbit = rabbit;
 
         //Act
-        photo.Id = await sut.RegisterPhotoAsync(model);
+        image.Id = await sut.RegisterImageAsync(model);
 
         //Assert
-        var result = _context.Photos
+        var result = _context.Images
             .Include(i => i.Rabbit)
-            .FirstOrDefault(x => x.Id == photo.Id);
+            .FirstOrDefault(x => x.Id == image.Id);
 
-        result.Should().BeEquivalentTo(photo, option => option
+        result.Should().BeEquivalentTo(image, option => option
             .Excluding(x => x.DateAdded)
             .IgnoringCyclicReferences());
     }

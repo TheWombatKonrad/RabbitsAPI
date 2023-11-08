@@ -8,15 +8,15 @@ using WonderfulRabbitsApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using WonderfulRabbitsApi.Models.Rabbits;
 using System.Collections.Generic;
-using WonderfulRabbitsApi.Models.Photos;
+using WonderfulRabbitsApi.Models.Images;
 using System.Collections.Immutable;
 
-public class PhotoService : IPhotoService
+public class ImageService : IImageService
 {
     private RabbitDbContext _context;
     private readonly IMapper _mapper;
 
-    public PhotoService(
+    public ImageService(
         RabbitDbContext context,
         IMapper mapper)
     {
@@ -24,31 +24,31 @@ public class PhotoService : IPhotoService
         _mapper = mapper;
     }
 
-    public async Task<int> RegisterPhotoAsync(RegisterPhotoModel model)
+    public async Task<int> RegisterImageAsync(RegisterImageModel model)
     {
-        var photo = _mapper.Map<Photo>(model);
-        photo.DateAdded = DateTime.Now;
-        photo.Rabbit = await GetRabbitByIdAsync(model.RabbitId);
-        photo.ImageData = Convert.FromBase64String(model.Base64ImageData);
+        var image = _mapper.Map<Image>(model);
+        image.DateAdded = DateTime.Now;
+        image.Rabbit = await GetRabbitByIdAsync(model.RabbitId);
+        image.ImageData = Convert.FromBase64String(model.Base64ImageData);
 
-        _context.Photos.Add(photo);
+        _context.Images.Add(image);
         await _context.SaveChangesAsync();
 
-        return photo.Id;
+        return image.Id;
 
     }
-    public async Task<Photo> GetPhotoAsync(int id)
+    public async Task<Image> GetImageAsync(int id)
     {
-        var photo = await _context.Photos
+        var image = await _context.Images
             .Include(i => i.Rabbit)
             .FirstOrDefaultAsync(x => x.Id == id);
 
-        return photo;
+        return image;
     }
 
-    public async Task<List<Photo>> GetPhotosAsync()
+    public async Task<List<Image>> GetImageAsync()
     {
-        return await _context.Photos.Include(i => i.Rabbit).ToListAsync();
+        return await _context.Images.Include(i => i.Rabbit).ToListAsync();
     }
 
     //****************
@@ -59,7 +59,7 @@ public class PhotoService : IPhotoService
     {
         var rabbit = await _context.Rabbits
             .Include(i => i.User)
-            .Include(i => i.Photos)
+            .Include(i => i.Images)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (rabbit == null) throw new KeyNotFoundException("Rabbit not found");
         return rabbit;

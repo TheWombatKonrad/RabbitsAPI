@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
-namespace WonderfulRabbitsApi.Models.Photos;
+namespace WonderfulRabbitsApi.Models.Images;
 
-public class RegisterPhotoModel
+public class RegisterImageModel
 {
     public int RabbitId { get; set; }
     public string Title { get; set; }
-
-    // [ModelBinder(BinderType = typeof(ByteArrayModelBinder))]
     public string Base64ImageData { get; set; }
+    public string FileName { get; set; }
+    public string FileExtension { get; set; }
 
 }

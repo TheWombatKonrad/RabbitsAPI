@@ -7,5 +7,5 @@ public class RabbitModel
     public string Name { get; set; }
     public DateTime? Birthdate { get; set; }
     public UserDataModel User { get; set; }
-    // public virtual ICollection<Photo> Photos { get; set; } = new List<Photo>();
+    // public virtual ICollection<Image> Imagess { get; set; } = new List<Image>();
 }

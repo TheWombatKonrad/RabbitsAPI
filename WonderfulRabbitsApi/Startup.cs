@@ -79,7 +79,7 @@ namespace WonderfulRabbitsApi
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRabbitService, RabbitService>();
-            services.AddScoped<IPhotoService, PhotoService>();
+            services.AddScoped<IImageService, ImageService>();
 
             // automapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());

@@ -8,7 +8,7 @@ using WonderfulRabbitsApi.Models.Users;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text;
-using WonderfulRabbitsApi.Models.Photos;
+using WonderfulRabbitsApi.Models.Images;
 using WonderfulRabbitsApi.Models.Rabbits;
 using System.Net.Http.Headers;
 
@@ -129,22 +129,24 @@ public class TestDataHelper
         return model;
     }
 
-    public RegisterPhotoModel GetRegisterPhotoModel()
+    public RegisterImageModel GetRegisterImagesModel()
     {
-        var faker = new Faker<RegisterPhotoModel>()
+        var faker = new Faker<RegisterImageModel>()
             .RuleFor(r => r.Title, f => f.Lorem.Sentence().ClampLength(max: 16));
 
         var model = faker.Generate(1)[0];
-        model.ImageData = GetFakeImageData();
+        model.Base64ImageData = GetFakeImageData();
 
         return model;
     }
 
-    private byte[] GetFakeImageData()
+    private string GetFakeImageData()
     {
         Random rnd = new Random();
-        byte[] imageData = new byte[1000];
-        rnd.NextBytes(imageData);
+        byte[] bytes = new byte[1000];
+        rnd.NextBytes(bytes);
+
+        var imageData = Convert.ToBase64String(bytes);
 
         return imageData;
     }

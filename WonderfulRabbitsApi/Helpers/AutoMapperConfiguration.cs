@@ -12,7 +12,7 @@ namespace WonderfulRabbitsApi.Helpers
             {
                 cfg.AddProfile<UserMapperProfile>();
                 cfg.AddProfile<RabbitMapperProfile>();
-                cfg.AddProfile<PhotoMapperProfile>();
+                cfg.AddProfile<ImageMapperProfile>();
             });
 
             return config;

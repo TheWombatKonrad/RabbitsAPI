@@ -17,7 +17,7 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
 
             CreateMap<Rabbit, RegisterRabbitModel>()
                 .ForMember(x => x.UserId, opt => opt.Ignore())
-                .ForMember(x => x.Photos, opt => opt.Ignore());
+                .ForMember(x => x.Images, opt => opt.Ignore());
 
 
             CreateMap<UpdateRabbitModel, Rabbit>(MemberList.Source)

@@ -13,7 +13,7 @@ namespace WonderfulRabbitsApi.DatabaseContext
         }
 
         public virtual DbSet<User>? Users { get; set; }
-        public virtual DbSet<Photo>? Photos { get; set; }
+        public virtual DbSet<Image>? Images { get; set; }
         public virtual DbSet<Rabbit>? Rabbits { get; set; }
 
 
