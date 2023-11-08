@@ -8,7 +8,7 @@ namespace WonderfulRabbitsApi.Models
         public DateTime DateAdded { get; set; }
         public virtual RabbitModel Rabbit { get; set; }
         public string Title { get; set; }
-        public byte[] ImageData { get; set; }
+        public string ImageData { get; set; }
 
 
         // public int Id { get; set; }

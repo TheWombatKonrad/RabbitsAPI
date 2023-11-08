@@ -9,7 +9,6 @@ namespace WonderfulRabbitsApi.Entities
         public DateTime DateAdded { get; set; }
         public virtual Rabbit Rabbit { get; set; }
         public string Title { get; set; }
-        [ModelBinder(BinderType = typeof(ByteArrayModelBinder))]
         public byte[] ImageData { get; set; }
 
 

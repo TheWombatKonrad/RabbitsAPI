@@ -2,7 +2,6 @@ using WonderfulRabbitsApi.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using WonderfulRabbitsApi.Services.Interfaces;
-using WonderfulRabbitsApi.Models.Rabbits;
 using WonderfulRabbitsApi.Models.Photos;
 using WonderfulRabbitsApi.Models;
 
@@ -22,8 +21,9 @@ namespace WonderfulRabbitsApi.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous] //TODO: remove allowanonymous
         [HttpPost("upload")]
-        public async Task<IActionResult> RegisterPhoto(RegisterPhotoModel model)
+        public async Task<IActionResult> UploadPhoto(RegisterPhotoModel model)
         {
             int id = await _service.RegisterPhotoAsync(model);
 
@@ -43,9 +43,15 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetPhotos()
         {
-            var photo = _mapper.Map<List<PhotoModel>>(await _service.GetPhotosAsync());
+            var models = await _service.GetPhotosAsync();
+            var photos = _mapper.Map<List<PhotoModel>>(models);
 
-            return Ok(photo);
+            for (int i = 0; i < photos.Count(); i++)
+            {
+                photos[i].ImageData = Convert.ToBase64String(models[i].ImageData);
+            }
+
+            return Ok(photos);
         }
     }
 }

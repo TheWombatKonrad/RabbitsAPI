@@ -29,6 +29,7 @@ public class PhotoService : IPhotoService
         var photo = _mapper.Map<Photo>(model);
         photo.DateAdded = DateTime.Now;
         photo.Rabbit = await GetRabbitByIdAsync(model.RabbitId);
+        photo.ImageData = Convert.FromBase64String(model.Base64ImageData);
 
         _context.Photos.Add(photo);
         await _context.SaveChangesAsync();

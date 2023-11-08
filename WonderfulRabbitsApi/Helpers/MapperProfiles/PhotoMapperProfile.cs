@@ -14,9 +14,12 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
             .ForMember(x => x.Id, opt => opt.Ignore())
             .ForMember(x => x.Rabbit, opt => opt.Ignore())
             .ForMember(x => x.DateAdded, opt => opt.Ignore())
-            .ForSourceMember(x => x.RabbitId, opt => opt.DoNotValidate());
+            .ForMember(x => x.ImageData, opt => opt.Ignore())
+            .ForSourceMember(x => x.RabbitId, opt => opt.DoNotValidate())
+            .ForSourceMember(x => x.Base64ImageData, opt => opt.DoNotValidate());
 
-            CreateMap<Photo, PhotoModel>();
+            CreateMap<Photo, PhotoModel>()
+                .ForMember(x => x.ImageData, opt => opt.Ignore());
         }
     }
 }
