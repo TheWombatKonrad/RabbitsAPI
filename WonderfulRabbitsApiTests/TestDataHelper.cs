@@ -11,9 +11,17 @@ using System.Text;
 using WonderfulRabbitsApi.Models.Images;
 using WonderfulRabbitsApi.Models.Rabbits;
 using System.Net.Http.Headers;
+using AutoMapper;
 
 public class TestDataHelper
 {
+    IMapper _mapper;
+
+    public TestDataHelper(IMapper mapper = null)
+    {
+        _mapper = mapper;
+    }
+
     public RegisterUserModel GetRegisterUserModel()
     {
         var faker = new Faker<RegisterUserModel>()
@@ -129,25 +137,33 @@ public class TestDataHelper
         return model;
     }
 
-    public RegisterImageModel GetRegisterImagesModel()
+    public List<Image> GetImages(int amount)
     {
-        var faker = new Faker<RegisterImageModel>()
-            .RuleFor(r => r.Title, f => f.Lorem.Sentence().ClampLength(max: 16));
+        var faker = new Faker<Image>()
+            .RuleFor(r => r.Title, f => f.Lorem.Sentence().ClampLength(max: 16))
+            .RuleFor(r => r.DateAdded, f => f.Date.Past())
+            .RuleFor(r => r.FileName, Path.GetRandomFileName)
+            .RuleFor(r => r.ImageData, GetFakeImageData())
+            .RuleFor(r => r.FileExtension, ".jpg");
 
-        var model = faker.Generate(1)[0];
-        model.Base64ImageData = GetFakeImageData();
+        var image = faker.Generate(amount);
+
+        return image;
+    }
+
+    public UploadImageModel GetRegisterImagesModel()
+    {
+        var model = _mapper.Map<UploadImageModel>(GetImages(1)[0]);
 
         return model;
     }
 
-    private string GetFakeImageData()
+    private byte[] GetFakeImageData()
     {
         Random rnd = new Random();
         byte[] bytes = new byte[1000];
         rnd.NextBytes(bytes);
 
-        var imageData = Convert.ToBase64String(bytes);
-
-        return imageData;
+        return bytes;
     }
 }
