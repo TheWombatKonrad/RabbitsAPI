@@ -1,3 +1,4 @@
+using WonderfulRabbitsApi.Models.Images;
 using WonderfulRabbitsApi.Models.Users;
 
 namespace WonderfulRabbitsApi.Models.Rabbits;
@@ -7,5 +8,5 @@ public class RabbitModel
     public string Name { get; set; }
     public DateTime? Birthdate { get; set; }
     public UserDataModel User { get; set; }
-    // public virtual ICollection<Image> Imagess { get; set; } = new List<Image>();
+    public virtual ICollection<ImageModel> Images { get; set; } = new List<ImageModel>();
 }
