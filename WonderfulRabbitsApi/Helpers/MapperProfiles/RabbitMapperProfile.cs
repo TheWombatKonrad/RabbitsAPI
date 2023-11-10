@@ -9,6 +9,7 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
         public RabbitMapperProfile()
         {
             CreateMap<Rabbit, RabbitModel>();
+            CreateMap<Rabbit, RabbitDataModel>();
 
             CreateMap<RegisterRabbitModel, Rabbit>()
                 .ForMember(x => x.Id, opt => opt.Ignore())
