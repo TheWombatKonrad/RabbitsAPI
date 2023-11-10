@@ -10,13 +10,29 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
     {
         public ImageMapperProfile()
         {
-            CreateMap<RegisterImageModel, Image>()
+            CreateMap<UploadImageModel, Image>()
+            .ForMember(x => x.ImageData, opt => opt.MapFrom(x => x.Base64ImageData))
+            .ForMember(x => x.FileName, opt => opt.Ignore())
             .ForMember(x => x.Id, opt => opt.Ignore())
             .ForMember(x => x.Rabbit, opt => opt.Ignore())
             .ForMember(x => x.DateAdded, opt => opt.Ignore())
-            .ForSourceMember(x => x.RabbitId, opt => opt.DoNotValidate());
+            .ForSourceMember(x => x.RabbitId, opt => opt.DoNotValidate())
+            .ReverseMap();
 
-            CreateMap<Image, ImageModel>();
+            CreateMap<Image, ImageModel>()
+                .ForMember(x => x.Base64ImageData, opt => opt.MapFrom(x => x.ImageData));
+
+            CreateMap<UpdateImageModel, Image>(MemberList.Source)
+                .ForAllMembers(x => x.Condition(
+                    (src, dest, prop) =>
+                    {
+                        // ignore null & empty string properties
+                        if (prop == null) return false;
+                        if (prop.GetType() == typeof(string) && string.IsNullOrEmpty((string)prop)) return false;
+
+                        return true;
+                    }
+                ));
 
             CreateMap<string, byte[]>().ConvertUsing(s => Convert.FromBase64String(s));
             CreateMap<byte[], string>().ConvertUsing(bytes => Convert.ToBase64String(bytes));
