@@ -24,12 +24,12 @@ public class ImageService : IImageService
         _mapper = mapper;
     }
 
-    public async Task<int> RegisterImageAsync(RegisterImageModel model)
+    public async Task<int> UploadImageAsync(UploadImageModel model)
     {
         var image = _mapper.Map<Image>(model);
         image.DateAdded = DateTime.Now;
         image.Rabbit = await GetRabbitByIdAsync(model.RabbitId);
-        image.ImageData = Convert.FromBase64String(model.Base64ImageData);
+        image.FileName = Path.GetRandomFileName();
 
         _context.Images.Add(image);
         await _context.SaveChangesAsync();
@@ -41,14 +41,35 @@ public class ImageService : IImageService
     {
         var image = await _context.Images
             .Include(i => i.Rabbit)
+            .ThenInclude(i => i.User)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return image;
     }
 
-    public async Task<List<Image>> GetImageAsync()
+    public async Task<List<Image>> GetImagesAsync()
     {
-        return await _context.Images.Include(i => i.Rabbit).ToListAsync();
+        return await _context.Images
+            .Include(i => i.Rabbit)
+            .ThenInclude(i => i.User)
+            .ToListAsync();
+    }
+
+    public async Task DeleteImageAsync(int id)
+    {
+        var image = await _context.Images.FirstOrDefaultAsync(x => x.Id == id);
+
+        _context.Images.Remove(image);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateImageAsync(int id, UpdateImageModel model)
+    {
+        var image = await GetImageAsync(id);
+        _mapper.Map(model, image);
+
+        _context.Images.Update(image);
+        await _context.SaveChangesAsync();
     }
 
     //****************
@@ -65,4 +86,12 @@ public class ImageService : IImageService
         return rabbit;
     }
 
+    private async Task<Image> GetImageByIdAsync(int id)
+    {
+        var image = await _context.Images
+            .Include(i => i.Rabbit)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (image == null) throw new KeyNotFoundException("Image not found");
+        return image;
+    }
 }
