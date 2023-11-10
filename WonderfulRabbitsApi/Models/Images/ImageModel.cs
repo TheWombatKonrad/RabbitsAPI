@@ -6,7 +6,7 @@ namespace WonderfulRabbitsApi.Models.Images
     {
         public int Id { get; set; }
         public DateTime DateAdded { get; set; }
-        public virtual RabbitModel Rabbit { get; set; }
+        public virtual RabbitDataModel Rabbit { get; set; }
         public string Title { get; set; }
         public string Base64ImageData { get; set; }
         public string FileName { get; set; }
