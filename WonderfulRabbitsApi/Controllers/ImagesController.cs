@@ -23,9 +23,9 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous] //TODO: remove allowanonymous
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage(RegisterImageModel model)
+        public async Task<IActionResult> UploadImage(UploadImageModel model)
         {
-            int id = await _service.RegisterImageAsync(model);
+            int id = await _service.UploadImageAsync(model);
 
             return Ok(new { message = "Image successfully added", id });
         }
@@ -43,7 +43,7 @@ namespace WonderfulRabbitsApi.Controllers
         [HttpGet()]
         public async Task<IActionResult> GetImages()
         {
-            var models = await _service.GetImageAsync();
+            var models = await _service.GetImagesAsync();
             var images = _mapper.Map<List<ImageModel>>(models);
 
             for (int i = 0; i < images.Count(); i++)
