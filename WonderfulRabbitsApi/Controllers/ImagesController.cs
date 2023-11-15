@@ -23,7 +23,7 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous] //TODO: remove allowanonymous
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage(UploadImageModel model)
+        public async Task<IActionResult> UploadImageAsync(UploadImageModel model)
         {
             int id = await _service.UploadImageAsync(model);
 
@@ -32,7 +32,7 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetImage(int id)
+        public async Task<IActionResult> GetImageAsync(int id)
         {
             var image = _mapper.Map<ImageModel>(await _service.GetImageAsync(id));
 
@@ -41,7 +41,7 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous]
         [HttpGet()]
-        public async Task<IActionResult> GetImages()
+        public async Task<IActionResult> GetImagesAsync()
         {
             var models = await _service.GetImagesAsync();
             var images = _mapper.Map<List<ImageModel>>(models);
@@ -52,6 +52,20 @@ namespace WonderfulRabbitsApi.Controllers
             }
 
             return Ok(images);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateImageAsync(int id, UpdateImageModel model)
+        {
+            await _service.UpdateImageAsync(id, model);
+            return Ok(new { message = "The image has been updated successfully." });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteImageAsync(int id)
+        {
+            await _service.DeleteImageAsync(id);
+            return Ok(new { message = "The image has been deleted successfully." });
         }
     }
 }
