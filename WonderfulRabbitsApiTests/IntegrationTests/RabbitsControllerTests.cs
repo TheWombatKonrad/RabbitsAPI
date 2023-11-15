@@ -90,11 +90,11 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
 
         //Act
         var response = await _client.SendAsync(request);
-        var updatedUser = await _helper.GetRabbitFromClient(_client, id);
+        var updatedRabbit = await _helper.GetRabbitFromClientAsync(_client, id);
 
         //Assert
         response.Should().BeSuccessful();
-        updatedUser.Name.Should().Be("newName");
+        updatedRabbit.Name.Should().Be("newName");
     }
 
     [Fact]
@@ -226,7 +226,7 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
 
         //Act
         var response = await _client.SendAsync(request);
-        var result = await _helper.GetRabbitFromClient(_client, id);
+        var result = await _helper.GetRabbitFromClientAsync(_client, id);
 
         //Assert
         response.Should().BeSuccessful();

@@ -43,7 +43,7 @@ public class ImageServiceTests
 
         _context.ChangeTracker.Clear();
 
-        var model = _helper.GetRegisterImagesModel();
+        var model = _helper.GetUploadImagesModel();
         model.RabbitId = rabbit.Id;
 
         var sut = new ImageService(_context, _mapper);
