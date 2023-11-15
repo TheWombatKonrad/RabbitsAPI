@@ -58,8 +58,10 @@ public class TestDataHelper
         return BCrypt.HashPassword(password);
     }
 
-    public async Task<string> GetAuthenticationToken(HttpClient client, AuthenticateRequestModel model)
+    public async Task<string> GetAuthenticationToken(HttpClient client, AuthenticateRequestModel model = null)
     {
+        if (model == null) model = GetAuthenticateRequestModel();
+
         var json = JsonSerializer.Serialize(model);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/authenticate")
@@ -71,6 +73,15 @@ public class TestDataHelper
         var responseModel = await response.Content.ReadFromJsonAsync<AuthenticateResponseModel>();
 
         return responseModel.Token;
+    }
+
+    private AuthenticateRequestModel GetAuthenticateRequestModel()
+    {
+        return new AuthenticateRequestModel()
+        {
+            Username = "Wombats",
+            Password = "password1234"
+        };
     }
 
     public async Task<UserModel> GetUserFromClient(HttpClient client, int id)
@@ -127,7 +138,7 @@ public class TestDataHelper
         return request;
     }
 
-    public async Task<RabbitModel> GetRabbitFromClient(HttpClient client, int id)
+    public async Task<RabbitModel> GetRabbitFromClientAsync(HttpClient client, int id)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, $"/api/rabbits/{id}");
 
@@ -151,7 +162,7 @@ public class TestDataHelper
         return image;
     }
 
-    public UploadImageModel GetRegisterImagesModel()
+    public UploadImageModel GetUploadImagesModel()
     {
         var model = _mapper.Map<UploadImageModel>(GetImages(1)[0]);
 
@@ -165,5 +176,49 @@ public class TestDataHelper
         rnd.NextBytes(bytes);
 
         return bytes;
+    }
+
+    public async Task<int> GetNewImageIdAsync(HttpClient client, int rabbitId, string token)
+    {
+        var model = GetUploadImagesModel();
+        model.RabbitId = rabbitId;
+        var request = GetUploadImageRequest(model, token);
+
+        var response = await client.SendAsync(request);
+        var result = await response.Content.ReadFromJsonAsync<ImageModel>();
+
+        return result.Id;
+    }
+
+    public HttpRequestMessage GetUploadImageRequest(UploadImageModel model, string token)
+    {
+        var json = JsonSerializer.Serialize(model);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/images/upload")
+        {
+            Content = new StringContent(json, Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        return request;
+    }
+
+    public async Task<ImageModel> GetImageFromClient(HttpClient client, int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/images/{id}");
+
+        var response = await client.SendAsync(request);
+        var model = await response.Content.ReadFromJsonAsync<ImageModel>();
+
+        return model;
+    }
+
+    public async Task<int> UploadImageToClientAsync(HttpClient client, string token, UploadImageModel model)
+    {
+        var uploadRequest = GetUploadImageRequest(model, token);
+        var uploadResponse = await client.SendAsync(uploadRequest);
+
+        var id = (await uploadResponse.Content.ReadFromJsonAsync<ImageModel>()).Id;
+
+        return id;
     }
 }
