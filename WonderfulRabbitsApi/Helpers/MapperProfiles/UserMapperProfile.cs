@@ -9,8 +9,8 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
         public UserMapperProfile()
         {
             CreateMap<User, AuthenticateResponseModel>().ForMember(d => d.Token, act => act.Ignore());
-            CreateMap<User, UserModel>();
-            CreateMap<User, UserDataModel>();
+            CreateMap<User, UserModel>().ReverseMap();
+            CreateMap<User, UserDataModel>().ReverseMap();
 
             CreateMap<RegisterUserModel, User>(MemberList.Source)
                 .ForSourceMember(s => s.Password, act => act.DoNotValidate());

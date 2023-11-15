@@ -20,7 +20,8 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
             .ReverseMap();
 
             CreateMap<Image, ImageModel>()
-                .ForMember(x => x.Base64ImageData, opt => opt.MapFrom(x => x.ImageData));
+                .ForMember(x => x.Base64ImageData, opt => opt.MapFrom(x => x.ImageData))
+                .ReverseMap();
 
             CreateMap<UpdateImageModel, Image>(MemberList.Source)
                 .ForAllMembers(x => x.Condition(
