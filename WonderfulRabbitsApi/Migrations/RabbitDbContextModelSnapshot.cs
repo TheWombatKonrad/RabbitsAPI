@@ -25,7 +25,7 @@ namespace WonderfulRabbitsApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("WonderfulRabbitsApi.Entities.Photo", b =>
+            modelBuilder.Entity("WonderfulRabbitsApi.Entities.Image", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,6 +35,14 @@ namespace WonderfulRabbitsApi.Migrations
 
                     b.Property<DateTime>("DateAdded")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("ImageData")
                         .IsRequired()
@@ -51,7 +59,7 @@ namespace WonderfulRabbitsApi.Migrations
 
                     b.HasIndex("RabbitId");
 
-                    b.ToTable("Photos");
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("WonderfulRabbitsApi.Entities.Rabbit", b =>
@@ -67,7 +75,8 @@ namespace WonderfulRabbitsApi.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -105,10 +114,10 @@ namespace WonderfulRabbitsApi.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("WonderfulRabbitsApi.Entities.Photo", b =>
+            modelBuilder.Entity("WonderfulRabbitsApi.Entities.Image", b =>
                 {
                     b.HasOne("WonderfulRabbitsApi.Entities.Rabbit", "Rabbit")
-                        .WithMany("Photos")
+                        .WithMany("Images")
                         .HasForeignKey("RabbitId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -129,7 +138,7 @@ namespace WonderfulRabbitsApi.Migrations
 
             modelBuilder.Entity("WonderfulRabbitsApi.Entities.Rabbit", b =>
                 {
-                    b.Navigation("Photos");
+                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("WonderfulRabbitsApi.Entities.User", b =>

@@ -39,10 +39,7 @@ public class ImageService : IImageService
     }
     public async Task<Image> GetImageAsync(int id)
     {
-        var image = await _context.Images
-            .Include(i => i.Rabbit)
-            .ThenInclude(i => i.User)
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var image = await GetImageByIdAsync(id);
 
         return image;
     }
@@ -57,7 +54,7 @@ public class ImageService : IImageService
 
     public async Task DeleteImageAsync(int id)
     {
-        var image = await _context.Images.FirstOrDefaultAsync(x => x.Id == id);
+        var image = await GetImageByIdAsync(id);
 
         _context.Images.Remove(image);
         await _context.SaveChangesAsync();
@@ -65,7 +62,7 @@ public class ImageService : IImageService
 
     public async Task UpdateImageAsync(int id, UpdateImageModel model)
     {
-        var image = await GetImageAsync(id);
+        var image = await GetImageByIdAsync(id);
         _mapper.Map(model, image);
 
         _context.Images.Update(image);
@@ -79,8 +76,8 @@ public class ImageService : IImageService
     private async Task<Rabbit> GetRabbitByIdAsync(int id)
     {
         var rabbit = await _context.Rabbits
-            .Include(i => i.User)
             .Include(i => i.Images)
+            .Include(i => i.User)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (rabbit == null) throw new KeyNotFoundException("Rabbit not found");
         return rabbit;
@@ -90,6 +87,7 @@ public class ImageService : IImageService
     {
         var image = await _context.Images
             .Include(i => i.Rabbit)
+            .ThenInclude(i => i.User)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (image == null) throw new KeyNotFoundException("Image not found");
         return image;
