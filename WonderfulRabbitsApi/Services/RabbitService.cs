@@ -47,6 +47,7 @@ public class RabbitService : IRabbitService
     {
         return await _context.Rabbits
             .Include(i => i.User)
+            .Include(i => i.Images)
             .ToListAsync();
     }
 
@@ -74,6 +75,7 @@ public class RabbitService : IRabbitService
     {
         var rabbit = await _context.Rabbits
             .Include(i => i.User)
+            .Include(i => i.Images)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (rabbit == null) throw new KeyNotFoundException("Rabbit not found");
         return rabbit;
