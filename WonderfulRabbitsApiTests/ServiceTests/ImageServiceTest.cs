@@ -5,10 +5,7 @@ using WonderfulRabbitsApi.Entities;
 using Xunit;
 using AutoMapper;
 using WonderfulRabbitsApi.Services;
-using Microsoft.AspNetCore.Http;
 using FluentAssertions;
-using WonderfulRabbitsApi.Models.Rabbits;
-using Moq;
 using Microsoft.EntityFrameworkCore;
 using WonderfulRabbitsApi.Models.Images;
 

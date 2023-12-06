@@ -7,9 +7,7 @@ using WonderfulRabbitsApi.Models.Users;
 using System.Net.Http.Headers;
 using AutoMapper;
 using WonderfulRabbitsApi.Helpers;
-using WonderfulRabbitsApi.Models.Rabbits;
 using WonderfulRabbitsApi.Models.Images;
-using WonderfulRabbitsApi.Entities;
 using WonderfulRabbitsApi.DatabaseContext;
 
 namespace WonderfulRabbitsApiTests.IntegrationTests;
