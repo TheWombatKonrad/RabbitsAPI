@@ -12,6 +12,7 @@ using WonderfulRabbitsApi.Models.Images;
 using WonderfulRabbitsApi.Models.Rabbits;
 using System.Net.Http.Headers;
 using AutoMapper;
+using WonderfulRabbitsApi.Controllers;
 
 public class TestDataHelper
 {
@@ -42,6 +43,31 @@ public class TestDataHelper
             .RuleFor(u => u.PasswordHash, f => BCrypt.HashPassword(f.Internet.Password()));
 
         return faker.Generate(amount);
+    }
+
+    public List<User> GetFullUsers(int amount)
+    {
+        var faker = new Faker<User>()
+            .RuleFor(u => u.Username, f => f.Internet.UserName().ClampLength(max: 16))
+            .RuleFor(u => u.Email, f => f.Internet.Email())
+            .RuleFor(u => u.PasswordHash, f => BCrypt.HashPassword(f.Internet.Password()));
+
+        var users = faker.Generate(amount);
+
+        foreach (var user in users)
+        {
+            var rabbits = GetRabbits(2);
+            var images = GetImages(2);
+
+            rabbits[0].Images.Add(images[0]);
+            rabbits[1].Images.Add(images[1]);
+
+            user.Rabbits.Add(rabbits[0]);
+            user.Rabbits.Add(rabbits[1]);
+
+        }
+
+        return users;
     }
 
     public List<Rabbit> GetRabbits(int amount)
@@ -94,38 +120,6 @@ public class TestDataHelper
         return userModel;
     }
 
-    public async Task<int> RegisterUserAndGetIdAsync(HttpClient client, RegisterUserModel model)
-    {
-        var json = JsonSerializer.Serialize(model);
-
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/register")
-        {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-
-        var response = await client.SendAsync(request);
-
-        var user = await response.Content.ReadFromJsonAsync<UserModel>();
-
-        return user.Id;
-    }
-
-    public async Task<int> GetNewRabbitIdAsync(HttpClient client, int userId, string token)
-    {
-        var rabbit = GetRabbits(1)[0];
-        var model = new RegisterRabbitModel()
-        {
-            Name = rabbit.Name,
-            UserId = userId
-        };
-
-        var request = GetRegisterRabbitRequest(model, token);
-        var response = await client.SendAsync(request);
-        var responseRabbit = await response.Content.ReadFromJsonAsync<RabbitModel>();
-
-        return responseRabbit.Id;
-    }
-
     public HttpRequestMessage GetRegisterRabbitRequest(RegisterRabbitModel model, string token)
     {
         var json = JsonSerializer.Serialize(model);
@@ -176,18 +170,6 @@ public class TestDataHelper
         rnd.NextBytes(bytes);
 
         return bytes;
-    }
-
-    public async Task<int> GetNewImageIdAsync(HttpClient client, int rabbitId, string token)
-    {
-        var model = GetUploadImagesModel();
-        model.RabbitId = rabbitId;
-        var request = GetUploadImageRequest(model, token);
-
-        var response = await client.SendAsync(request);
-        var result = await response.Content.ReadFromJsonAsync<ImageModel>();
-
-        return result.Id;
     }
 
     public HttpRequestMessage GetUploadImageRequest(UploadImageModel model, string token)
