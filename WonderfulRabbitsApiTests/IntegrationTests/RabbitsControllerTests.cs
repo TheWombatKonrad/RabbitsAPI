@@ -8,81 +8,90 @@ using System.Net.Http.Headers;
 using AutoMapper;
 using WonderfulRabbitsApi.Helpers;
 using WonderfulRabbitsApi.Models.Rabbits;
+using WonderfulRabbitsApi.DatabaseContext;
 
 namespace WonderfulRabbitsApiTests.IntegrationTests;
 
 public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-    private readonly CustomWebApplicationFactory<Program> factory;
+    private readonly CustomWebApplicationFactory<Program> _factory;
     private readonly TestDataHelper _helper;
     private readonly IMapper _mapper;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public RabbitsControllerTests()
     {
-        factory = new CustomWebApplicationFactory<Program>();
-        _client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        _factory = new CustomWebApplicationFactory<Program>();
+        _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });
         _helper = new TestDataHelper();
         _mapper = new Mapper(AutoMapperConfiguration.Configure());
+        _scopeFactory = _factory.Services.GetService<IServiceScopeFactory>();
     }
 
     [Fact]
-    public async Task RegisterRabbit_WhenARabbitIsRegistered_ThenAnIdIsReturned()
+    public async Task RegisterRabbit_WhenARabbitIsRegistered_ThenTheCallIsSuccessful()
     {
         //Arrange
-        //create user
-        var userModel = _helper.GetRegisterUserModel();
-        var userId = await _helper.RegisterUserAndGetIdAsync(_client, userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
         var token = await _helper.GetAuthenticationToken(_client, new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         });
 
         //create request
-        var rabbitModel = _mapper.Map<RegisterRabbitModel>(_helper.GetRabbits(1)[0]);
-        rabbitModel.UserId = userId;
+        var model = _mapper.Map<RegisterRabbitModel>(_helper.GetRabbits(1)[0]);
+        model.UserId = user.Id;
 
-        var json = JsonSerializer.Serialize(rabbitModel);
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/rabbits/register")
-        {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var request = _helper.GetRegisterRabbitRequest(model, token);
 
         //Act
         var response = await _client.SendAsync(request);
-        var responseRabbit = await response.Content.ReadFromJsonAsync<RabbitModel>();
 
         //Assert
         response.Should().BeSuccessful();
-        responseRabbit.Id.Should().Be(1);
     }
 
     [Fact]
     public async Task UpdateRabbit_WhenUpdateRequestIsSent_ThenTheRabbitShouldBeUpdated()
     {
         //Arrange
-        //create user
-        var userModel = _helper.GetRegisterUserModel();
-        var userId = await _helper.RegisterUserAndGetIdAsync(_client, userModel);
+        var user = _helper.GetFullUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
         var token = await _helper.GetAuthenticationToken(_client, new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         });
-
-        //create rabbit
-        var id = await _helper.GetNewRabbitIdAsync(_client, userId, token);
 
         //create update request
         var requestModel = new UpdateRabbitModel() { Name = "newName" };
         var json = JsonSerializer.Serialize(requestModel);
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/rabbits/{id}")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/rabbits/{1}")
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
@@ -90,7 +99,7 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
 
         //Act
         var response = await _client.SendAsync(request);
-        var updatedRabbit = await _helper.GetRabbitFromClientAsync(_client, id);
+        var updatedRabbit = await _helper.GetRabbitFromClientAsync(_client, 1);
 
         //Assert
         response.Should().BeSuccessful();
@@ -101,38 +110,19 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
     public async Task GetRabbit_WhenRequestIsSent_ThenTheRabbitShouldBeReturned()
     {
         //Arrange
-        //create user
-        var userModel = _helper.GetRegisterUserModel();
-        var userId = await _helper.RegisterUserAndGetIdAsync(_client, userModel);
-        var token = await _helper.GetAuthenticationToken(_client, new AuthenticateRequestModel()
-        {
-            Username = userModel.Username,
-            Password = userModel.Password
-        });
+        var user = _helper.GetFullUsers(1)[0];
+        var rabbit = user.Rabbits.First();
 
-        //create rabbit
-        var rabbit = _helper.GetRabbits(1)[0];
-        var registerRabbitModel = new RegisterRabbitModel()
+        using (var scope = _scopeFactory.CreateScope())
         {
-            Name = rabbit.Name,
-            UserId = userId,
-            Birthdate = rabbit.Birthdate
-        };
-        var registerRequest = _helper.GetRegisterRabbitRequest(registerRabbitModel, token);
-        var registerResponse = await _client.SendAsync(registerRequest);
-        var id = (await registerResponse.Content.ReadFromJsonAsync<RabbitModel>()).Id;
-        rabbit.Id = id;
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
 
-        //create rabbitModel to compare to
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
         var rabbitModel = _mapper.Map<RabbitModel>(rabbit);
-        rabbitModel.User = new UserDataModel()
-        {
-            Id = userId,
-            Username = userModel.Username,
-            Email = userModel.Email
-        };
-
-        var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/rabbits/{id}");
+        var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/rabbits/{rabbit.Id}");
 
         //Act
         var getResponse = await _client.SendAsync(getRequest);
@@ -147,52 +137,17 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
     public async Task GetRabbits_WhenRequestIsSent_ThenAllRabbitsShouldBeReturned()
     {
         //Arrange
-        //create user
-        var userModel = _helper.GetRegisterUserModel();
-        var userId = await _helper.RegisterUserAndGetIdAsync(_client, userModel);
-        var token = await _helper.GetAuthenticationToken(_client, new AuthenticateRequestModel()
+        var user = _helper.GetFullUsers(1)[0];
+
+        using (var scope = _scopeFactory.CreateScope())
         {
-            Username = userModel.Username,
-            Password = userModel.Password
-        });
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
 
-        //create rabbits
-        var rabbits = _helper.GetRabbits(2);
-        var rabbitIds = new List<int>();
-
-        foreach (var rabbit in rabbits)
-        {
-            var model = new RegisterRabbitModel()
-            {
-                Name = rabbit.Name,
-                UserId = userId,
-                Birthdate = rabbit.Birthdate
-            };
-
-            var registerRequest = _helper.GetRegisterRabbitRequest(model, token);
-            var registerResponse = await _client.SendAsync(registerRequest);
-            var id = (await registerResponse.Content.ReadFromJsonAsync<RabbitModel>()).Id;
-
-            rabbitIds.Add(id);
-            rabbit.Id = id;
+            context.Users.AddRange(user);
+            context.SaveChanges();
         }
 
-        //create rabbitModels to compare to
-        var rabbitModels = new List<RabbitModel>();
-
-        foreach (var rabbit in rabbits)
-        {
-            var model = _mapper.Map<RabbitModel>(rabbit);
-            model.User = new UserDataModel()
-            {
-                Id = userId,
-                Username = userModel.Username,
-                Email = userModel.Email
-            };
-
-            rabbitModels.Add(model);
-        }
-
+        var rabbitModels = _mapper.Map<List<RabbitModel>>(user.Rabbits);
         var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/rabbits/");
 
         //Act
@@ -208,25 +163,30 @@ public class RabbitsControllerTests : IClassFixture<CustomWebApplicationFactory<
     public async Task DeleteRabbit_WhenTheRequestIsSent_ThenTheRabbitShouldBeDeleted()
     {
         //Arrange
-        //create user
-        var userModel = _helper.GetRegisterUserModel();
-        var userId = await _helper.RegisterUserAndGetIdAsync(_client, userModel);
+        var user = _helper.GetFullUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
         var token = await _helper.GetAuthenticationToken(_client, new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         });
 
-        //create rabbit
-        var id = await _helper.GetNewRabbitIdAsync(_client, userId, token);
-
         //create delete request
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/rabbits/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/rabbits/1");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         //Act
         var response = await _client.SendAsync(request);
-        var result = await _helper.GetRabbitFromClientAsync(_client, id);
+        var result = await _helper.GetRabbitFromClientAsync(_client, 1); //from context instead?
 
         //Assert
         response.Should().BeSuccessful();

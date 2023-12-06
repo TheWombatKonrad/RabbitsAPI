@@ -5,23 +5,30 @@ using System.Text.Json;
 using System.Text;
 using WonderfulRabbitsApi.Models.Users;
 using System.Net.Http.Headers;
+using WonderfulRabbitsApi.DatabaseContext;
+using AutoMapper;
+using WonderfulRabbitsApi.Helpers;
 
 namespace WonderfulRabbitsApiTests.IntegrationTests;
 
 public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Program>>
 {
     private readonly HttpClient client;
-    private readonly CustomWebApplicationFactory<Program> factory;
+    private readonly CustomWebApplicationFactory<Program> _factory;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TestDataHelper _helper;
+    private readonly IMapper _mapper;
 
     public UsersControllerTests()
     {
-        factory = new CustomWebApplicationFactory<Program>();
-        client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        _factory = new CustomWebApplicationFactory<Program>();
+        client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });
         _helper = new TestDataHelper();
+        _scopeFactory = _factory.Services.GetService<IServiceScopeFactory>();
+        _mapper = new Mapper(AutoMapperConfiguration.Configure());
     }
 
     [Fact]
@@ -49,13 +56,21 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     public async Task AuthenticateUser_WhenUsernameAndPasswordIsValid_ThenTheRequestShouldBeSuccessful()
     {
         //Arrange
-        var userModel = _helper.GetRegisterUserModel();
-        await _helper.RegisterUserAndGetIdAsync(client, userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
 
         var requestModel = new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         };
 
         var json = JsonSerializer.Serialize(requestModel);
@@ -76,12 +91,20 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     public async Task AuthenticateUser_WhenUsernameAndPasswordIsInvalid_ThenTheRequestShouldNotBeSuccesful()
     {
         //Arrange
-        var userModel = _helper.GetRegisterUserModel();
-        await _helper.RegisterUserAndGetIdAsync(client, userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
 
         var requestModel = new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
+            Username = user.Username,
             Password = "wrongPassword1234"
         };
 
@@ -103,12 +126,21 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     public async Task UpdateUser_WhenUpdateRequestIsSent_ThenTheUserShouldBeUpdated()
     {
         //Arrange
-        var userModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetIdAsync(client, userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
         var token = await _helper.GetAuthenticationToken(client, new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         });
 
         var requestModel = new UpdateUserModel()
@@ -118,7 +150,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
 
         var json = JsonSerializer.Serialize(requestModel);
 
-        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/users/{id}")
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/users/{user.Id}")
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
@@ -127,7 +159,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
 
         //Act
         var response = await client.SendAsync(request);
-        var updatedUser = await _helper.GetUserFromClient(client, id);
+        var updatedUser = await _helper.GetUserFromClient(client, user.Id);
 
         //Assert
         response.Should().BeSuccessful();
@@ -139,10 +171,18 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
     public async Task GetUser_WhenRequestIsSent_ThenTheUserShouldBeReturned()
     {
         //Arrange 
-        var registerModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetIdAsync(client, registerModel);
+        var user = _helper.GetFullUsers(1)[0];
 
-        var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{id}");
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
+        var userModel = _mapper.Map<UserModel>(user);
+        var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{user.Id}");
 
         //Act
         var getResponse = await client.SendAsync(getRequest);
@@ -150,32 +190,24 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
 
         //Assert
         getResponse.Should().BeSuccessful();
-        result.Should().BeEquivalentTo(registerModel, options => options
-            .Excluding(x => x.Password));
+        result.Should().BeEquivalentTo(userModel);
     }
 
     [Fact]
     public async Task GetUsers_WhenRequestIsSent_ThenAllUsersShouldBeReturned()
     {
         //Arrange 
-        List<RegisterUserModel> registerModels = new List<RegisterUserModel>()
+        var users = _helper.GetFullUsers(2);
+
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _helper.GetRegisterUserModel(),
-            _helper.GetRegisterUserModel()
-        };
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
 
-        foreach (var model in registerModels)
-        {
-            var json = JsonSerializer.Serialize(model);
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "/api/users/register")
-            {
-                Content = new StringContent(json, Encoding.UTF8, "application/json")
-            };
-
-            var registerUserResponse = await client.SendAsync(request);
+            context.Users.AddRange(users);
+            context.SaveChanges();
         }
 
+        var userModels = _mapper.Map<List<UserModel>>(users);
         var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/users/");
 
         //Act
@@ -184,29 +216,38 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory<Pr
 
         //Assert
         getResponse.Should().BeSuccessful();
-        result.Should().BeEquivalentTo(registerModels, options => options
-            .Excluding(x => x.Password));
+        result.Should().BeEquivalentTo(userModels);
     }
 
     [Fact]
     public async Task DeleteUser_WhenTheRequestIsSent_ThenTheUserShouldBeDeleted()
     {
         //Arrange
-        var userModel = _helper.GetRegisterUserModel();
-        var id = await _helper.RegisterUserAndGetIdAsync(client, userModel);
+        var user = _helper.GetUsers(1)[0];
+        user.PasswordHash = _helper.HashPassword("password1234");
+
+        using (var scope = _scopeFactory.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetService<RabbitDbContext>();
+
+            context.Users.Add(user);
+            context.SaveChanges();
+        }
+
+
         var token = await _helper.GetAuthenticationToken(client, new AuthenticateRequestModel()
         {
-            Username = userModel.Username,
-            Password = userModel.Password
+            Username = user.Username,
+            Password = "password1234"
         });
 
 
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{id}");
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{user.Id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         //Act
         var response = await client.SendAsync(request);
-        var result = await _helper.GetUserFromClient(client, id);
+        var result = await _helper.GetUserFromClient(client, user.Id);
 
         //Assert
         response.Should().BeSuccessful();
