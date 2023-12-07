@@ -45,11 +45,6 @@ namespace WonderfulRabbitsApi.Controllers
             var models = await _service.GetImagesAsync();
             var images = _mapper.Map<List<ImageModel>>(models);
 
-            for (int i = 0; i < images.Count(); i++)
-            {
-                images[i].Base64ImageData = Convert.ToBase64String(models[i].ImageData);
-            }
-
             return Ok(images);
         }
 
