@@ -21,7 +21,6 @@ namespace WonderfulRabbitsApi.Controllers
             _mapper = mapper;
         }
 
-        [AllowAnonymous] //TODO: remove allowanonymous
         [HttpPost("upload")]
         public async Task<IActionResult> UploadImageAsync(UploadImageModel model)
         {
