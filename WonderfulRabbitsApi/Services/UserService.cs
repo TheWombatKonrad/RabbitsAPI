@@ -46,7 +46,10 @@ public class UserService : IUserService
 
     public async Task<List<User>> GetUsersAsync()
     {
-        return await _context.Users.Include(i => i.Rabbits).ToListAsync();
+        return await _context.Users
+            .Include(i => i.Rabbits)
+            .ThenInclude(i => i.Images)
+            .ToListAsync();
     }
 
     public async Task<User> GetUserAsync(int id)
@@ -113,6 +116,7 @@ public class UserService : IUserService
     {
         var user = await _context.Users
             .Include(i => i.Rabbits)
+            .ThenInclude(i => i.Images)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (user == null) throw new KeyNotFoundException("User not found");
         return user;

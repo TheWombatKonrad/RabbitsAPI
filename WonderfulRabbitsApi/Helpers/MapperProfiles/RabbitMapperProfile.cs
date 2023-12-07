@@ -8,16 +8,21 @@ namespace WonderfulRabbitsApi.Helpers.MapperProfiles
     {
         public RabbitMapperProfile()
         {
-            CreateMap<Rabbit, RabbitModel>();
+            CreateMap<Rabbit, RabbitModel>().ReverseMap();
+            CreateMap<Rabbit, RabbitDataModel>();
+            CreateMap<RabbitDataModel, Rabbit>()
+                .ForMember(x => x.Images, opt => opt.Ignore());
+            CreateMap<RabbitModel, RabbitDataModel>().ReverseMap();
 
             CreateMap<RegisterRabbitModel, Rabbit>()
                 .ForMember(x => x.Id, opt => opt.Ignore())
                 .ForMember(x => x.User, opt => opt.Ignore())
-                .ForSourceMember(x => x.UserId, opt => opt.DoNotValidate());
+                .ForSourceMember(x => x.UserId, opt => opt.DoNotValidate())
+                .ReverseMap();
 
             CreateMap<Rabbit, RegisterRabbitModel>()
                 .ForMember(x => x.UserId, opt => opt.Ignore())
-                .ForMember(x => x.Photos, opt => opt.Ignore());
+                .ForMember(x => x.Images, opt => opt.Ignore());
 
 
             CreateMap<UpdateRabbitModel, Rabbit>(MemberList.Source)

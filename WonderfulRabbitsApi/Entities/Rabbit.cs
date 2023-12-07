@@ -9,6 +9,6 @@ namespace WonderfulRabbitsApi.Entities
                 public string Name { get; set; }
                 public DateTime? Birthdate { get; set; }
                 public virtual User User { get; set; }
-                // public virtual ICollection<Photo> Photos { get; set; } = new List<Photo>();
+                public virtual ICollection<Image> Images { get; set; } = new List<Image>();
         }
 }

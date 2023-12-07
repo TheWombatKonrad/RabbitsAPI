@@ -22,7 +22,7 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetRabbits()
+        public async Task<IActionResult> GetRabbitsAsync()
         {
             var users = _mapper.Map<List<RabbitModel>>(await _service.GetRabbitsAsync());
             return Ok(users);
@@ -30,14 +30,14 @@ namespace WonderfulRabbitsApi.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetRabbit(int id)
+        public async Task<IActionResult> GetRabbitAsync(int id)
         {
             var user = _mapper.Map<RabbitModel>(await _service.GetRabbitAsync(id));
             return Ok(user);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRabbit(int id, UpdateRabbitModel model)
+        public async Task<IActionResult> UpdateRabbitAsync(int id, UpdateRabbitModel model)
         {
             await _service.UpdateRabbitAsync(id, model);
             return Ok(new { message = "Rabbit updated successfully" });

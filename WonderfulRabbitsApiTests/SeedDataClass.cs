@@ -21,15 +21,25 @@ public class SeedDataClass : ISeedDataClass
 
     public void InitializeDbForTests()
     {
-        // _db.Users.AddRange(
-        //    new User()
-        //    {
-        //        Username = "Wombats",
-        //        PasswordHash = _helper.HashPassword("password1234"),
-        //        Email = "email@email.com"
-        //    }
-        // );
+        var user = new User()
+        {
+            Username = "Wombats",
+            PasswordHash = _helper.HashPassword("password1234"),
+            Email = "email@email.com"
+        };
 
-        // _db.SaveChanges(true);
+        _db.Users.Add(user);
+
+        var rabbit = _helper.GetRabbits(1)[0];
+        rabbit.User = user;
+
+        _db.Rabbits.Add(rabbit);
+
+        var image = _helper.GetImages(1)[0];
+        image.Rabbit = rabbit;
+
+        _db.Images.Add(image);
+
+        _db.SaveChanges(true);
     }
 }

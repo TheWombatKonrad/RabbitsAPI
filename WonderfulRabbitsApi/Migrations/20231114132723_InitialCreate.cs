@@ -32,7 +32,7 @@ namespace WonderfulRabbitsApi.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false),
                     Birthdate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -48,19 +48,23 @@ namespace WonderfulRabbitsApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Photos",
+                name: "Images",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DateAdded = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RabbitId = table.Column<int>(type: "int", nullable: false)
+                    RabbitId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageData = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileExtension = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Photos", x => x.Id);
+                    table.PrimaryKey("PK_Images", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Photos_Rabbits_RabbitId",
+                        name: "FK_Images_Rabbits_RabbitId",
                         column: x => x.RabbitId,
                         principalTable: "Rabbits",
                         principalColumn: "Id",
@@ -68,8 +72,8 @@ namespace WonderfulRabbitsApi.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Photos_RabbitId",
-                table: "Photos",
+                name: "IX_Images_RabbitId",
+                table: "Images",
                 column: "RabbitId");
 
             migrationBuilder.CreateIndex(
@@ -82,7 +86,7 @@ namespace WonderfulRabbitsApi.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Photos");
+                name: "Images");
 
             migrationBuilder.DropTable(
                 name: "Rabbits");
