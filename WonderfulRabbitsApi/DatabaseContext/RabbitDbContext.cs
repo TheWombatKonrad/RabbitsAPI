@@ -15,9 +15,5 @@ namespace WonderfulRabbitsApi.DatabaseContext
         public virtual DbSet<User>? Users { get; set; }
         public virtual DbSet<Image>? Images { get; set; }
         public virtual DbSet<Rabbit>? Rabbits { get; set; }
-
-
-        //     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //  => optionsBuilder.LogTo(message => Debug.WriteLine(message));
     }
 }

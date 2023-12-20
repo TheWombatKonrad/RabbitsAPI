@@ -1,4 +1,3 @@
-Calls to the database are async, which doesn't do much right not because the database is
-the bottleneck - it can only handle one request at a time. But if I switch to a different
-database, e.g. Microsoft Azure SQL Database/NoSQL/etc, having the calls be async could speed
-up the process.
+This is a private project that I have been working on. While this public copy should always be functional, it is currently unfinished and very rudimentary. The goal of the project is a website where users can register and post images of their rabbits. The project really only exists for fun and to practice programming, and the website will probably never be published.
+
+Currently, only the API is finished, and it is only possible to add users and rabbits.

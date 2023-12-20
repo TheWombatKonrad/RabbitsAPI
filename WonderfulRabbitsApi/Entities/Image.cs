@@ -12,8 +12,5 @@ namespace WonderfulRabbitsApi.Entities
         public byte[] ImageData { get; set; }
         public string FileName { get; set; }
         public string FileExtension { get; set; }
-
-        // public string Description { get; set; }
-        // public decimal Size { get; set; }
     }
 }

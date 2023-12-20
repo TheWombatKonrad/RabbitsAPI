@@ -36,7 +36,6 @@ namespace WonderfulRabbitsApi.Controllers
         public async Task<IActionResult> GetUser(int id)
         {
             var user = _mapper.Map<UserModel>(await _service.GetUserAsync(id));
-
             return Ok(user);
         }
 
@@ -60,7 +59,6 @@ namespace WonderfulRabbitsApi.Controllers
         public async Task<IActionResult> RegisterUserAsync(RegisterUserModel model)
         {
             int id = await _service.RegisterUserAsync(model);
-
             return Ok(new { message = "Registration successful", id });
         }
 

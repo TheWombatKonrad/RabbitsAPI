@@ -19,8 +19,6 @@ namespace WonderfulRabbitsApi
 
         public void Configure(WebApplication app)
         {
-            //the order of things is important so be careful when adding things
-
             app.UseRouting();
 
             // global cors policy
@@ -46,7 +44,6 @@ namespace WonderfulRabbitsApi
 
         public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
         {
-            //the order of things is important so be careful when adding things
             services.AddDbContext<RabbitDbContext>(
                 options => options
                     .UseSqlServer(_configuration.GetConnectionString("DefaultConnection"))
@@ -84,7 +81,6 @@ namespace WonderfulRabbitsApi
             // automapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            //so httpcontext can be accessed in the services
             services.AddHttpContextAccessor();
         }
     }
